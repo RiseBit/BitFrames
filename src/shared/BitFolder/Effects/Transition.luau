@@ -1,0 +1,218 @@
+--!strict
+--[[
+    =========  TRANSITION EFFECTS  =========
+    Made by @RiseBit, Discord: risebit, Github: https://github.com/RiseBit
+
+    Pre-made transition animations between UI states using centralized Scheduler.
+    Supports both time-based (easing) and spring-based animation.
+]]
+
+--[[
+    =========  MODULES  =========
+]]
+local Check = require(script.Parent.Parent.Utils.Check)
+local AnimationFactory = require(script.Parent.Parent.Core.AnimationFactory)
+local Helpers = require(script.Parent.Parent.Utils.Helpers)
+local Types = require(script.Parent.Parent.Core.Types)
+local spr = require(script.Parent.Parent.Dependencies.spr)
+
+local assertArg = Check.assertArg
+local setTransparency = Helpers.setTransparency
+local getEasing = Helpers.getEasing
+
+--[[
+    =========  TYPES  =========
+]]
+type TransitionConfig = Types.TransitionConfig
+type EffectController = Types.EffectController
+
+--[[
+    =========  CONSTANTS  =========
+]]
+local DEFAULT_DURATION = 0.3
+local DEFAULT_EASING = "OutQuad"
+local DEFAULT_DAMPING = 0.8
+local DEFAULT_FREQUENCY = 3
+
+--[[
+    =========  MAIN MODULE  =========
+]]
+local Transition = {}
+
+function Transition.crossfade(fromElement: GuiObject, toElement: GuiObject, config: TransitionConfig?): EffectController
+    assertArg(fromElement, "fromElement", "Instance")
+    assertArg(toElement, "toElement", "Instance")
+
+    local useSpring = config and config.spring
+    local onComplete = config and config.onComplete
+
+    setTransparency(toElement, 1)
+    toElement.Visible = true
+
+    if useSpring then
+        local damping = config and config.damping or DEFAULT_DAMPING
+        local frequency = config and config.frequency or DEFAULT_FREQUENCY
+
+        spr.target(fromElement, damping, frequency, { BackgroundTransparency = 1 })
+        spr.target(toElement, damping, frequency, { BackgroundTransparency = 0 })
+
+        if fromElement:IsA("TextLabel") or fromElement:IsA("TextButton") or fromElement:IsA("TextBox") then
+            spr.target(fromElement, damping, frequency, { TextTransparency = 1 })
+        end
+        if fromElement:IsA("ImageLabel") or fromElement:IsA("ImageButton") then
+            spr.target(fromElement, damping, frequency, { ImageTransparency = 1 })
+        end
+        if toElement:IsA("TextLabel") or toElement:IsA("TextButton") or toElement:IsA("TextBox") then
+            spr.target(toElement, damping, frequency, { TextTransparency = 0 })
+        end
+        if toElement:IsA("ImageLabel") or toElement:IsA("ImageButton") then
+            spr.target(toElement, damping, frequency, { ImageTransparency = 0 })
+        end
+
+        spr.completed(fromElement, function()
+            fromElement.Visible = false
+            if onComplete then onComplete() end
+        end)
+
+        local function reset()
+            setTransparency(toElement, 0)
+            toElement.Visible = true
+            fromElement.Visible = false
+        end
+
+        return {
+            stop = function(self)
+                spr.stop(fromElement)
+                spr.stop(toElement)
+                reset()
+            end,
+            pause = function(self) end,
+            resume = function(self) end,
+        }
+    end
+
+    local duration = config and config.duration or DEFAULT_DURATION
+    local easingFn = getEasing(config and config.easing or DEFAULT_EASING)
+    local elapsed = 0
+
+    local function reset()
+        setTransparency(toElement, 0)
+        toElement.Visible = true
+        fromElement.Visible = false
+    end
+
+    local animation = AnimationFactory.create(
+        function(dt: number): boolean
+            elapsed = elapsed + dt
+            local t = math.clamp(elapsed / duration, 0, 1)
+            local eased = easingFn(t)
+
+            setTransparency(fromElement, eased)
+            setTransparency(toElement, 1 - eased)
+
+            if t >= 1 then
+                setTransparency(fromElement, 1)
+                setTransparency(toElement, 0)
+                fromElement.Visible = false
+                return true
+            end
+            return false
+        end,
+        onComplete,
+        nil
+    )
+
+    AnimationFactory.start(animation)
+    return AnimationFactory.createController(animation, reset)
+end
+
+function Transition.slideReplace(fromElement: GuiObject, toElement: GuiObject, direction: string?, config: TransitionConfig?): EffectController
+    assertArg(fromElement, "fromElement", "Instance")
+    assertArg(toElement, "toElement", "Instance")
+
+    local dir = direction or "left"
+    local useSpring = config and config.spring
+    local onComplete = config and config.onComplete
+
+    local fromOriginal = fromElement.Position
+    local toOriginal = toElement.Position
+
+    local offsetX, offsetY = 0, 0
+    if dir == "left" then offsetX = -50
+    elseif dir == "right" then offsetX = 50
+    elseif dir == "up" then offsetY = -50
+    elseif dir == "down" then offsetY = 50
+    end
+
+    toElement.Position = UDim2.new(toOriginal.X.Scale, toOriginal.X.Offset - offsetX, toOriginal.Y.Scale, toOriginal.Y.Offset - offsetY)
+    toElement.Visible = true
+
+    if useSpring then
+        local damping = config and config.damping or DEFAULT_DAMPING
+        local frequency = config and config.frequency or DEFAULT_FREQUENCY
+        local fromTarget = UDim2.new(fromOriginal.X.Scale, fromOriginal.X.Offset + offsetX, fromOriginal.Y.Scale, fromOriginal.Y.Offset + offsetY)
+
+        spr.target(fromElement, damping, frequency, { Position = fromTarget })
+        spr.target(toElement, damping, frequency, { Position = toOriginal })
+
+        spr.completed(toElement, function()
+            fromElement.Visible = false
+            fromElement.Position = fromOriginal
+            if onComplete then onComplete() end
+        end)
+
+        local function reset()
+            toElement.Position = toOriginal
+            toElement.Visible = true
+            fromElement.Visible = false
+            fromElement.Position = fromOriginal
+        end
+
+        return {
+            stop = function(self)
+                spr.stop(fromElement)
+                spr.stop(toElement)
+                reset()
+            end,
+            pause = function(self) end,
+            resume = function(self) end,
+        }
+    end
+
+    local duration = config and config.duration or DEFAULT_DURATION
+    local easingFn = getEasing(config and config.easing or DEFAULT_EASING)
+    local elapsed = 0
+
+    local function reset()
+        toElement.Position = toOriginal
+        toElement.Visible = true
+        fromElement.Visible = false
+        fromElement.Position = fromOriginal
+    end
+
+    local animation = AnimationFactory.create(
+        function(dt: number): boolean
+            elapsed = elapsed + dt
+            local t = math.clamp(elapsed / duration, 0, 1)
+            local eased = easingFn(t)
+
+            fromElement.Position = UDim2.new(fromOriginal.X.Scale, fromOriginal.X.Offset + offsetX * eased, fromOriginal.Y.Scale, fromOriginal.Y.Offset + offsetY * eased)
+            toElement.Position = UDim2.new(toOriginal.X.Scale, toOriginal.X.Offset - offsetX * (1 - eased), toOriginal.Y.Scale, toOriginal.Y.Offset - offsetY * (1 - eased))
+
+            if t >= 1 then
+                fromElement.Visible = false
+                fromElement.Position = fromOriginal
+                toElement.Position = toOriginal
+                return true
+            end
+            return false
+        end,
+        onComplete,
+        nil
+    )
+
+    AnimationFactory.start(animation)
+    return AnimationFactory.createController(animation, reset)
+end
+
+return Transition
