@@ -7,5 +7,4 @@
 /src/client
 /src/server
 
-*json
-*toml
+/default.project.json
