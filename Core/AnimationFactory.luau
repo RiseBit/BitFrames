@@ -87,14 +87,14 @@ end
 
 function AnimationFactory._createController(animation: Animation, onStop: (() -> ())?): EffectController
     return {
-        stop = function(self)
+        stop = function()
             Scheduler._stop(animation)
             if onStop then onStop() end
         end,
-        pause = function(self)
+        pause = function()
             Scheduler._pause(animation)
         end,
-        resume = function(self)
+        resume = function()
             Scheduler._resume(animation)
         end,
     }

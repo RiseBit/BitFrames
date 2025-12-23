@@ -1,21 +1,5 @@
 --!strict
 --[[
-    =========  HELPER FUNCTIONS  =========
-]]
-local function createEnum(name: string, values: { string }): { [string]: string }
-    local enum = {}
-    for _, value in values do
-        enum[value] = value
-    end
-
-    return table.freeze(setmetatable(enum, {
-        __index = function(_, key)
-            error(string.format("Invalid %s: '%s'", name, tostring(key)), 2)
-        end,
-    }))
-end
-
---[[
     =========  DEFAULTS  =========
 ]]
 local Defaults = table.freeze({
@@ -29,18 +13,18 @@ local Defaults = table.freeze({
 --[[
     =========  EASING ENUM  =========
 ]]
-local Easing = createEnum("Easing", {
-    "Linear",
-    "InQuad", "OutQuad", "InOutQuad",
-    "InCubic", "OutCubic", "InOutCubic",
-    "InQuart", "OutQuart", "InOutQuart",
-    "InQuint", "OutQuint", "InOutQuint",
-    "InSine", "OutSine", "InOutSine",
-    "InExpo", "OutExpo", "InOutExpo",
-    "InCirc", "OutCirc", "InOutCirc",
-    "InElastic", "OutElastic", "InOutElastic",
-    "InBack", "OutBack", "InOutBack",
-    "InBounce", "OutBounce", "InOutBounce",
+local Easing = table.freeze({
+    Linear = "Linear",
+    InQuad = "InQuad", OutQuad = "OutQuad", InOutQuad = "InOutQuad",
+    InCubic = "InCubic", OutCubic = "OutCubic", InOutCubic = "InOutCubic",
+    InQuart = "InQuart", OutQuart = "OutQuart", InOutQuart = "InOutQuart",
+    InQuint = "InQuint", OutQuint = "OutQuint", InOutQuint = "InOutQuint",
+    InSine = "InSine", OutSine = "OutSine", InOutSine = "InOutSine",
+    InExpo = "InExpo", OutExpo = "OutExpo", InOutExpo = "InOutExpo",
+    InCirc = "InCirc", OutCirc = "OutCirc", InOutCirc = "InOutCirc",
+    InElastic = "InElastic", OutElastic = "OutElastic", InOutElastic = "InOutElastic",
+    InBack = "InBack", OutBack = "OutBack", InOutBack = "InOutBack",
+    InBounce = "InBounce", OutBounce = "OutBounce", InOutBounce = "InOutBounce",
 })
 
 --[[
@@ -73,32 +57,10 @@ local AttentionDefaults = table.freeze({
     LOOPS = 1,
 })
 
---[[
-    =========  PRESET ENUM  =========
-]]
-local Preset = createEnum("Preset", {
-    "FadeIn", "FadeInUp", "FadeInDown", "FadeInLeft", "FadeInRight",
-    "ScaleIn", "ScaleInBounce",
-    "SlideInUp", "SlideInDown", "SlideInLeft", "SlideInRight",
-    "ZoomIn", "DropIn", "FlipInX", "FlipInY",
-
-    "FadeOut", "FadeOutUp", "FadeOutDown", "FadeOutLeft", "FadeOutRight",
-    "ScaleOut", "ShrinkOut",
-    "SlideOutUp", "SlideOutDown", "SlideOutLeft", "SlideOutRight",
-    "ZoomOut",
-
-    "Pulse", "Shake", "Bounce", "Wiggle", "Flash", "Heartbeat", "Jello", "RubberBand",
-
-    "Spin", "SpinReverse", "Float", "Breathe", "Glow", "Swing", "Sway",
-
-    "Wave", "Rainbow", "Typewriter", "Scramble", "Glitch",
-})
-
 return table.freeze({
     Defaults = Defaults,
     Easing = Easing,
     Spring = table.freeze(Spring),
-    Preset = Preset,
     TextDefaults = TextDefaults,
     AttentionDefaults = AttentionDefaults,
 })

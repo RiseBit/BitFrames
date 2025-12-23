@@ -75,7 +75,7 @@ function Loop.spin(element: GuiObject, config: LoopConfig?): EffectController
     assertArg(element, "element", "Instance")
     return createLoopEffect(
         element,
-        function(el) return 0 end,
+        function(_el) return 0 end,
         function(el, _, value) el.Rotation = value end,
         function(elapsed, speed, _) return (elapsed * speed * 360) % 360 end,
         config, 1, 1
@@ -86,7 +86,7 @@ function Loop.spinReverse(element: GuiObject, config: LoopConfig?): EffectContro
     assertArg(element, "element", "Instance")
     return createLoopEffect(
         element,
-        function(el) return 0 end,
+        function(_el) return 0 end,
         function(el, _, value) el.Rotation = value end,
         function(elapsed, speed, _) return 360 - (elapsed * speed * 360) % 360 end,
         config, 1, 1

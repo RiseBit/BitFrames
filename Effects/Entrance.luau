@@ -65,17 +65,17 @@ function Entrance.fadeIn(element: GuiObject, config: EntranceConfig?): EffectCon
         end)
 
         return {
-            stop = function(self)
+            stop = function()
                 cancelled = true
                 spr.stop(element)
                 if isValidElement(element) then
                     setTransparency(element, 0)
                 end
             end,
-            pause = function(self)
+            pause = function()
                 warn("[BitFrames] pause() is not supported for spring animations")
             end,
-            resume = function(self)
+            resume = function()
                 warn("[BitFrames] resume() is not supported for spring animations")
             end,
         }
@@ -148,13 +148,13 @@ function Entrance.fadeInUp(element: GuiObject, config: EntranceConfig?): EffectC
         end)
 
         return {
-            stop = function(self)
+            stop = function()
                 spr.stop(element)
                 setTransparency(element, 0)
                 element.Position = originalPosition
             end,
-            pause = function(self) end,
-            resume = function(self) end,
+            pause = function() end,
+            resume = function() end,
         }
     end
 
@@ -225,13 +225,13 @@ function Entrance.fadeInDown(element: GuiObject, config: EntranceConfig?): Effec
         end)
 
         return {
-            stop = function(self)
+            stop = function()
                 spr.stop(element)
                 setTransparency(element, 0)
                 element.Position = originalPosition
             end,
-            pause = function(self) end,
-            resume = function(self) end,
+            pause = function() end,
+            resume = function() end,
         }
     end
 
@@ -299,14 +299,14 @@ function Entrance.scaleIn(element: GuiObject, config: EntranceConfig?): EffectCo
         end)
 
         return {
-            stop = function(self)
+            stop = function()
                 spr.stop(element)
                 spr.stop(uiScale)
                 setTransparency(element, 0)
                 uiScale.Scale = 1
             end,
-            pause = function(self) end,
-            resume = function(self) end,
+            pause = function() end,
+            resume = function() end,
         }
     end
 
@@ -374,14 +374,14 @@ function Entrance.scaleInBounce(element: GuiObject, config: EntranceConfig?): Ef
         end)
 
         return {
-            stop = function(self)
+            stop = function()
                 spr.stop(element)
                 spr.stop(uiScale)
                 setTransparency(element, 0)
                 uiScale.Scale = 1
             end,
-            pause = function(self) end,
-            resume = function(self) end,
+            pause = function() end,
+            resume = function() end,
         }
     end
 
@@ -447,14 +447,14 @@ function Entrance.zoomIn(element: GuiObject, config: EntranceConfig?): EffectCon
         end)
 
         return {
-            stop = function(self)
+            stop = function()
                 spr.stop(element)
                 spr.stop(uiScale)
                 setTransparency(element, 0)
                 uiScale.Scale = 1
             end,
-            pause = function(self) end,
-            resume = function(self) end,
+            pause = function() end,
+            resume = function() end,
         }
     end
 
@@ -525,13 +525,13 @@ function Entrance.dropIn(element: GuiObject, config: EntranceConfig?): EffectCon
         end)
 
         return {
-            stop = function(self)
+            stop = function()
                 spr.stop(element)
                 setTransparency(element, 0)
                 element.Position = originalPosition
             end,
-            pause = function(self) end,
-            resume = function(self) end,
+            pause = function() end,
+            resume = function() end,
         }
     end
 

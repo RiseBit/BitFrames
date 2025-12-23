@@ -62,14 +62,14 @@ function Exit.fadeOut(element: GuiObject, config: ExitConfig?): EffectController
         end)
 
         return {
-            stop = function(self)
+            stop = function()
                 cancelled = true
                 spr.stop(element)
             end,
-            pause = function(self)
+            pause = function()
                 warn("[BitFrames] pause() is not supported for spring animations")
             end,
-            resume = function(self)
+            resume = function()
                 warn("[BitFrames] resume() is not supported for spring animations")
             end,
         }
@@ -129,12 +129,12 @@ function Exit.fadeOutUp(element: GuiObject, config: ExitConfig?): EffectControll
         end)
 
         return {
-            stop = function(self)
+            stop = function()
                 spr.stop(element)
                 element.Position = originalPosition
             end,
-            pause = function(self) end,
-            resume = function(self) end,
+            pause = function() end,
+            resume = function() end,
         }
     end
 
@@ -199,12 +199,12 @@ function Exit.fadeOutDown(element: GuiObject, config: ExitConfig?): EffectContro
         end)
 
         return {
-            stop = function(self)
+            stop = function()
                 spr.stop(element)
                 element.Position = originalPosition
             end,
-            pause = function(self) end,
-            resume = function(self) end,
+            pause = function() end,
+            resume = function() end,
         }
     end
 
@@ -269,13 +269,13 @@ function Exit.scaleOut(element: GuiObject, config: ExitConfig?): EffectControlle
         end)
 
         return {
-            stop = function(self)
+            stop = function()
                 spr.stop(element)
                 spr.stop(uiScale)
                 uiScale.Scale = originalScale
             end,
-            pause = function(self) end,
-            resume = function(self) end,
+            pause = function() end,
+            resume = function() end,
         }
     end
 
@@ -340,13 +340,13 @@ function Exit.shrinkOut(element: GuiObject, config: ExitConfig?): EffectControll
         end)
 
         return {
-            stop = function(self)
+            stop = function()
                 spr.stop(element)
                 spr.stop(uiScale)
                 uiScale.Scale = originalScale
             end,
-            pause = function(self) end,
-            resume = function(self) end,
+            pause = function() end,
+            resume = function() end,
         }
     end
 
@@ -411,13 +411,13 @@ function Exit.zoomOut(element: GuiObject, config: ExitConfig?): EffectController
         end)
 
         return {
-            stop = function(self)
+            stop = function()
                 spr.stop(element)
                 spr.stop(uiScale)
                 uiScale.Scale = originalScale
             end,
-            pause = function(self) end,
-            resume = function(self) end,
+            pause = function() end,
+            resume = function() end,
         }
     end
 

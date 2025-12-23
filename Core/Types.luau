@@ -30,9 +30,9 @@ export type Animation = {
     =========  CONTROLLER TYPES  =========
 ]]
 export type EffectController = {
-    stop: (self: EffectController) -> (),
-    pause: (self: EffectController) -> (),
-    resume: (self: EffectController) -> (),
+    stop: () -> (),
+    pause: () -> (),
+    resume: () -> (),
 }
 
 --[[
@@ -118,6 +118,20 @@ export type TransitionConfig = {
     onComplete: (() -> ())?,
 }
 
+export type TweenConfig = {
+    duration: number?,
+    easing: string?,
+    delay: number?,
+    onComplete: (() -> ())?,
+}
+
+export type SpringConfig = {
+    damping: number?,
+    frequency: number?,
+    delay: number?,
+    onComplete: (() -> ())?,
+}
+
 export type RippleConfig = {
     duration: number?,
     color: Color3?,
@@ -143,4 +157,5 @@ export type HighlightConfig = {
 export type EasingFunction = (t: number) -> number
 export type SlideDirection = "left" | "right" | "up" | "down"
 
-return nil
+return {}
+

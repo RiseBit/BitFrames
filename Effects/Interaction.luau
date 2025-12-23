@@ -72,9 +72,9 @@ function Interaction.ripple(element: GuiObject, position: Vector2?, config: Ripp
 
     if absSize.X <= 0 or absSize.Y <= 0 then
         return {
-            stop = function(self) end,
-            pause = function(self) end,
-            resume = function(self) end,
+            stop = function() end,
+            pause = function() end,
+            resume = function() end,
         }
     end
 
@@ -163,9 +163,9 @@ function Interaction.tap(element: GuiObject, position: Vector2?, config: RippleC
 
     if absSize.X <= 0 or absSize.Y <= 0 then
         return {
-            stop = function(self) end,
-            pause = function(self) end,
-            resume = function(self) end,
+            stop = function() end,
+            pause = function() end,
+            resume = function() end,
         }
     end
 

@@ -83,13 +83,13 @@ function Transition.crossfade(fromElement: GuiObject, toElement: GuiObject, conf
         end
 
         return {
-            stop = function(self)
+            stop = function()
                 spr.stop(fromElement)
                 spr.stop(toElement)
                 reset()
             end,
-            pause = function(self) end,
-            resume = function(self) end,
+            pause = function() end,
+            resume = function() end,
         }
     end
 
@@ -175,13 +175,13 @@ function Transition.slideReplace(fromElement: GuiObject, toElement: GuiObject, d
         end
 
         return {
-            stop = function(self)
+            stop = function()
                 spr.stop(fromElement)
                 spr.stop(toElement)
                 reset()
             end,
-            pause = function(self) end,
-            resume = function(self) end,
+            pause = function() end,
+            resume = function() end,
         }
     end
 
