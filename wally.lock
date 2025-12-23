@@ -5,4 +5,4 @@ registry = "test"
 [[package]]
 name = "risebit/bitframe"
 version = "0.1.0"
-dependencies = []
+dependencies = [["bitframe", "risebit/bitframe@0.1.0"]]
