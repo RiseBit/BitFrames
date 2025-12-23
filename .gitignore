@@ -4,5 +4,8 @@
 # Roblox Studio lock files
 /*.rbxlx.lock
 /*.rbxl.lock
+/src/client
+/src/server
 
-sourcemap.json
+*.json
+*.toml

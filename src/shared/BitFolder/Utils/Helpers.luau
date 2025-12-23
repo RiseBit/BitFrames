@@ -16,7 +16,7 @@ local Easing = require(script.Parent.Easing)
 ]]
 local Helpers = {}
 
-function Helpers.setTransparency(element: GuiObject, alpha: number)
+function Helpers._setTransparency(element: GuiObject, alpha: number)
     element.BackgroundTransparency = alpha
     if element:IsA("TextLabel") or element:IsA("TextButton") or element:IsA("TextBox") then
         (element :: TextLabel).TextTransparency = alpha
@@ -26,8 +26,17 @@ function Helpers.setTransparency(element: GuiObject, alpha: number)
     end
 end
 
-function Helpers.getEasing(name: string): (number) -> number
-    return Easing.get(name) or Easing.OutQuad
+function Helpers._getEasing(name: string): (number) -> number
+    local fn = Easing.get(name)
+    if not fn then
+        warn(`[BitFrames] Unknown easing '{name}', using default 'OutQuad'`)
+        return Easing.OutQuad
+    end
+    return fn
 end
 
-return Helpers
+function Helpers._isValidElement(element: Instance): boolean
+    return element ~= nil and element.Parent ~= nil
+end
+
+return table.freeze(Helpers)

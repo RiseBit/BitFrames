@@ -11,14 +11,14 @@
 ]]
 local Check = require(script.Parent.Check)
 
-local assertArg = Check.assertArg
+local assertArg = Check._assertArg
 
 --[[
     =========  MAIN MODULE  =========
 ]]
 local Transform = {}
 
-function Transform.getUIScale(element: GuiObject): UIScale
+function Transform._getUIScale(element: GuiObject): UIScale
     assertArg(element, "element", "Instance")
     
     local existing = element:FindFirstChild("_BitFramesScale")
@@ -32,7 +32,7 @@ function Transform.getUIScale(element: GuiObject): UIScale
     return uiScale
 end
 
-function Transform.cleanup(element: GuiObject)
+function Transform._cleanup(element: GuiObject)
     assertArg(element, "element", "Instance")
     
     local scale = element:FindFirstChild("_BitFramesScale")
@@ -41,4 +41,4 @@ function Transform.cleanup(element: GuiObject)
     end
 end
 
-return Transform
+return table.freeze(Transform)

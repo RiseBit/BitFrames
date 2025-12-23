@@ -11,6 +11,7 @@
     =========  SERVICES  =========
 ]]
 local UserInputService = game:GetService("UserInputService")
+local GuiService = game:GetService("GuiService")
 
 --[[
     =========  MODULES  =========
@@ -20,7 +21,7 @@ local AnimationFactory = require(script.Parent.Parent.Core.AnimationFactory)
 local Transform = require(script.Parent.Parent.Utils.Transform)
 local Types = require(script.Parent.Parent.Core.Types)
 
-local assertArg = Check.assertArg
+local assertArg = Check._assertArg
 
 --[[
     =========  TYPES  =========
@@ -69,10 +70,18 @@ function Interaction.ripple(element: GuiObject, position: Vector2?, config: Ripp
     local absPos = element.AbsolutePosition
     local absSize = element.AbsoluteSize
 
+    if absSize.X <= 0 or absSize.Y <= 0 then
+        return {
+            stop = function(self) end,
+            pause = function(self) end,
+            resume = function(self) end,
+        }
+    end
+
     local clickPos: Vector2
-    if position then
-        local guiInset = game:GetService("GuiService"):GetGuiInset()
-        clickPos = Vector2.new(position.X, position.Y - guiInset.Y)
+    if position and position.X and position.Y then
+        local guiInset = GuiService:GetGuiInset()
+        clickPos = Vector2.new(position.X, position.Y - (guiInset.Y or 0))
     else
         clickPos = Vector2.new(absPos.X + absSize.X / 2, absPos.Y + absSize.Y / 2)
     end
@@ -113,8 +122,12 @@ function Interaction.ripple(element: GuiObject, position: Vector2?, config: Ripp
         end
     end
 
-    local animation = AnimationFactory.create(
+    local animation = AnimationFactory._create(
         function(dt: number): boolean
+            if not rippleContainer or not rippleContainer.Parent then
+                return true
+            end
+            
             elapsed = elapsed + dt
             local t = math.clamp(elapsed / duration, 0, 1)
 
@@ -132,8 +145,8 @@ function Interaction.ripple(element: GuiObject, position: Vector2?, config: Ripp
         cleanup
     )
 
-    AnimationFactory.start(animation)
-    return AnimationFactory.createController(animation, cleanup)
+    AnimationFactory._start(animation)
+    return AnimationFactory._createController(animation, cleanup)
 end
 
 function Interaction.tap(element: GuiObject, position: Vector2?, config: RippleConfig?): EffectController
@@ -148,9 +161,17 @@ function Interaction.tap(element: GuiObject, position: Vector2?, config: RippleC
     local absPos = element.AbsolutePosition
     local absSize = element.AbsoluteSize
 
+    if absSize.X <= 0 or absSize.Y <= 0 then
+        return {
+            stop = function(self) end,
+            pause = function(self) end,
+            resume = function(self) end,
+        }
+    end
+
     local clickPos: Vector2
     if position then
-        local guiInset = game:GetService("GuiService"):GetGuiInset()
+        local guiInset = GuiService:GetGuiInset()
         clickPos = Vector2.new(position.X, position.Y - guiInset.Y)
     else
         clickPos = Vector2.new(absPos.X + absSize.X / 2, absPos.Y + absSize.Y / 2)
@@ -192,8 +213,12 @@ function Interaction.tap(element: GuiObject, position: Vector2?, config: RippleC
         end
     end
 
-    local animation = AnimationFactory.create(
+    local animation = AnimationFactory._create(
         function(dt: number): boolean
+            if not tapContainer or not tapContainer.Parent then
+                return true
+            end
+            
             elapsed = elapsed + dt
             local t = math.clamp(elapsed / duration, 0, 1)
 
@@ -211,8 +236,8 @@ function Interaction.tap(element: GuiObject, position: Vector2?, config: RippleC
         cleanup
     )
 
-    AnimationFactory.start(animation)
-    return AnimationFactory.createController(animation, cleanup)
+    AnimationFactory._start(animation)
+    return AnimationFactory._createController(animation, cleanup)
 end
 
 function Interaction.press(element: GuiObject, config: PressConfig?): EffectController
@@ -221,7 +246,7 @@ function Interaction.press(element: GuiObject, config: PressConfig?): EffectCont
     local scale = config and config.scale or DEFAULT_PRESS_SCALE
     local duration = config and config.duration or DEFAULT_PRESS_DURATION
 
-    local uiScale = Transform.getUIScale(element)
+    local uiScale = Transform._getUIScale(element)
     local originalScale = uiScale.Scale
     local elapsed = 0
     local phase: "down" | "up" = "down"
@@ -230,7 +255,7 @@ function Interaction.press(element: GuiObject, config: PressConfig?): EffectCont
         uiScale.Scale = originalScale
     end
 
-    local animation = AnimationFactory.create(
+    local animation = AnimationFactory._create(
         function(dt: number): boolean
             elapsed = elapsed + dt
 
@@ -258,8 +283,8 @@ function Interaction.press(element: GuiObject, config: PressConfig?): EffectCont
         reset
     )
 
-    AnimationFactory.start(animation)
-    return AnimationFactory.createController(animation, reset)
+    AnimationFactory._start(animation)
+    return AnimationFactory._createController(animation, reset)
 end
 
 function Interaction.highlight(element: GuiObject, config: HighlightConfig?): EffectController
@@ -288,7 +313,7 @@ function Interaction.highlight(element: GuiObject, config: HighlightConfig?): Ef
         end
     end
 
-    local animation = AnimationFactory.create(
+    local animation = AnimationFactory._create(
         function(dt: number): boolean
             elapsed = elapsed + dt
             local t = math.clamp(elapsed / duration, 0, 1)
@@ -309,8 +334,8 @@ function Interaction.highlight(element: GuiObject, config: HighlightConfig?): Ef
         cleanup
     )
 
-    AnimationFactory.start(animation)
-    return AnimationFactory.createController(animation, cleanup)
+    AnimationFactory._start(animation)
+    return AnimationFactory._createController(animation, cleanup)
 end
 
 function Interaction.bindRipple(element: GuiButton, config: RippleConfig?): { disconnect: () -> () }
@@ -342,4 +367,4 @@ function Interaction.bindPress(element: GuiButton, config: PressConfig?): { disc
     }
 end
 
-return Interaction
+return table.freeze(Interaction)

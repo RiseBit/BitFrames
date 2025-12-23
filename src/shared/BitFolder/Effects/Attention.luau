@@ -9,12 +9,16 @@
 --[[
     =========  MODULES  =========
 ]]
+local Config = require(script.Parent.Parent.Config)
 local Check = require(script.Parent.Parent.Utils.Check)
 local AnimationFactory = require(script.Parent.Parent.Core.AnimationFactory)
 local Transform = require(script.Parent.Parent.Utils.Transform)
+local Helpers = require(script.Parent.Parent.Utils.Helpers)
 local Types = require(script.Parent.Parent.Core.Types)
 
-local assertArg = Check.assertArg
+local assertArg = Check._assertArg
+local isValidElement = Helpers._isValidElement
+local AttentionDefaults = Config.AttentionDefaults
 
 --[[
     =========  TYPES  =========
@@ -24,12 +28,7 @@ type EffectController = Types.EffectController
 
 type AttentionStepFn = (t: number, intensity: number) -> number
 
---[[
-    =========  CONSTANTS  =========
-]]
-local DEFAULT_DURATION = 0.4
-local DEFAULT_LOOPS = 1
-local RUBBERBAND_KEYFRAMES = { 1, 1.2, 0.9, 1.1, 1 }
+
 
 --[[
     =========  HELPER FUNCTIONS  =========
@@ -44,8 +43,8 @@ local function createAttentionEffect(
     defaultLoops: number?,
     defaultIntensity: number?
 ): EffectController
-    local duration = config and config.duration or defaultDuration or DEFAULT_DURATION
-    local loops = config and config.loops or defaultLoops or DEFAULT_LOOPS
+    local duration = math.max(config and config.duration or defaultDuration or AttentionDefaults.DURATION, 0.001)
+    local loops = config and config.loops or defaultLoops or AttentionDefaults.LOOPS
     local intensity = config and config.intensity or defaultIntensity or 0.1
     local onComplete = config and config.onComplete
 
@@ -54,11 +53,15 @@ local function createAttentionEffect(
     local currentLoop = 0
 
     local function reset()
-        setProperty(element, original, 0)
+        if isValidElement(element) then
+            setProperty(element, original, 0)
+        end
     end
 
-    local animation = AnimationFactory.create(
+    local animation = AnimationFactory._create(
         function(dt: number): boolean
+            if not isValidElement(element) then return true end
+            
             elapsed = elapsed + dt
             local t = elapsed / duration
 
@@ -79,8 +82,8 @@ local function createAttentionEffect(
         reset
     )
 
-    AnimationFactory.start(animation)
-    return AnimationFactory.createController(animation, reset)
+    AnimationFactory._start(animation)
+    return AnimationFactory._createController(animation, reset)
 end
 
 --[[
@@ -90,7 +93,7 @@ local Attention = {}
 
 function Attention.pulse(element: GuiObject, config: AttentionConfig?): EffectController
     assertArg(element, "element", "Instance")
-    local uiScale = Transform.getUIScale(element)
+    local uiScale = Transform._getUIScale(element)
     local originalScale = uiScale.Scale
     return createAttentionEffect(
         element,
@@ -152,7 +155,7 @@ end
 
 function Attention.heartbeat(element: GuiObject, config: AttentionConfig?): EffectController
     assertArg(element, "element", "Instance")
-    local uiScale = Transform.getUIScale(element)
+    local uiScale = Transform._getUIScale(element)
     local originalScale = uiScale.Scale
     return createAttentionEffect(
         element,
@@ -177,7 +180,7 @@ end
 
 function Attention.jello(element: GuiObject, config: AttentionConfig?): EffectController
     assertArg(element, "element", "Instance")
-    local uiScale = Transform.getUIScale(element)
+    local uiScale = Transform._getUIScale(element)
     local originalScale = uiScale.Scale
     return createAttentionEffect(
         element,
@@ -191,33 +194,4 @@ function Attention.jello(element: GuiObject, config: AttentionConfig?): EffectCo
     )
 end
 
-function Attention.rubberBand(element: GuiObject, config: AttentionConfig?): EffectController
-    assertArg(element, "element", "Instance")
-    local uiScale = Transform.getUIScale(element)
-    local originalScale = uiScale.Scale
-    local effectIntensity = config and config.intensity or 0.2
-
-    local keyframes = {
-        1,
-        1 + effectIntensity,
-        1 - effectIntensity * 0.5,
-        1 + effectIntensity * 0.5,
-        1
-    }
-
-    return createAttentionEffect(
-        element,
-        function(_) return originalScale end,
-        function(_, orig, multiplier) uiScale.Scale = orig * multiplier end,
-        function(t, _)
-            local segment = t * (#keyframes - 1)
-            local index = math.floor(segment) + 1
-            local nextIndex = math.min(index + 1, #keyframes)
-            local segmentT = segment - math.floor(segment)
-            return keyframes[index] + (keyframes[nextIndex] - keyframes[index]) * segmentT
-        end,
-        config, 0.5, 1, 0.2
-    )
-end
-
-return Attention
+return table.freeze(Attention)

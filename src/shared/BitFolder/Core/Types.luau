@@ -82,6 +82,16 @@ export type ScrambleConfig = {
     onComplete: (() -> ())?,
 }
 
+export type RollValueConfig = {
+    duration: number?,
+    easing: string?,
+    prefix: string?,
+    suffix: string?,
+    decimals: number?,
+    separator: boolean?,
+    onComplete: (() -> ())?,
+}
+
 export type ColorCycleConfig = {
     speed: number?,
     saturation: number?,
@@ -131,5 +141,6 @@ export type HighlightConfig = {
     =========  UTILITY TYPES  =========
 ]]
 export type EasingFunction = (t: number) -> number
+export type SlideDirection = "left" | "right" | "up" | "down"
 
 return nil

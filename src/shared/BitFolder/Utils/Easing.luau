@@ -1,3 +1,4 @@
+--!native
 --!strict
 --[[
     =========  EASING FUNCTIONS  =========
@@ -12,13 +13,12 @@ local sin = math.sin
 local cos = math.cos
 local sqrt = math.sqrt
 local pow = math.pow
-local abs = math.abs
 
 --[[
     =========  MODULES  =========
 ]]
 local Check = require(script.Parent.Check)
-local assertArg = Check.assertArg
+local assertArg = Check._assertArg
 
 --[[
     =========  MAIN MODULE  =========
@@ -290,4 +290,4 @@ function Easing.get(name: string): ((t: number) -> number)?
     return (Easing :: any)[name]
 end
 
-return Easing
+return table.freeze(Easing)

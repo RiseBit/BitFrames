@@ -12,9 +12,11 @@
 local Check = require(script.Parent.Parent.Utils.Check)
 local AnimationFactory = require(script.Parent.Parent.Core.AnimationFactory)
 local Transform = require(script.Parent.Parent.Utils.Transform)
+local Helpers = require(script.Parent.Parent.Utils.Helpers)
 local Types = require(script.Parent.Parent.Core.Types)
 
-local assertArg = Check.assertArg
+local assertArg = Check._assertArg
+local isValidElement = Helpers._isValidElement
 
 --[[
     =========  TYPES  =========
@@ -29,7 +31,6 @@ type LoopStepFn = (elapsed: number, speed: number, intensity: number) -> number
 ]]
 local function createLoopEffect(
     element: GuiObject,
-    property: string,
     getOriginal: (GuiObject) -> any,
     setProperty: (GuiObject, any, number) -> (),
     stepFn: LoopStepFn,
@@ -43,11 +44,15 @@ local function createLoopEffect(
     local elapsed = 0
 
     local function reset()
-        setProperty(element, original, 0)
+        if isValidElement(element) then
+            setProperty(element, original, 0)
+        end
     end
 
-    local animation = AnimationFactory.create(
+    local animation = AnimationFactory._create(
         function(dt: number): boolean
+            if not isValidElement(element) then return true end
+            
             elapsed = elapsed + dt
             local value = stepFn(elapsed, speed, intensity)
             setProperty(element, original, value)
@@ -57,8 +62,8 @@ local function createLoopEffect(
         reset
     )
 
-    AnimationFactory.start(animation)
-    return AnimationFactory.createController(animation, reset)
+    AnimationFactory._start(animation)
+    return AnimationFactory._createController(animation, reset)
 end
 
 --[[
@@ -69,7 +74,7 @@ local Loop = {}
 function Loop.spin(element: GuiObject, config: LoopConfig?): EffectController
     assertArg(element, "element", "Instance")
     return createLoopEffect(
-        element, "Rotation",
+        element,
         function(el) return 0 end,
         function(el, _, value) el.Rotation = value end,
         function(elapsed, speed, _) return (elapsed * speed * 360) % 360 end,
@@ -80,7 +85,7 @@ end
 function Loop.spinReverse(element: GuiObject, config: LoopConfig?): EffectController
     assertArg(element, "element", "Instance")
     return createLoopEffect(
-        element, "Rotation",
+        element,
         function(el) return 0 end,
         function(el, _, value) el.Rotation = value end,
         function(elapsed, speed, _) return 360 - (elapsed * speed * 360) % 360 end,
@@ -92,7 +97,7 @@ function Loop.float(element: GuiObject, config: LoopConfig?): EffectController
     assertArg(element, "element", "Instance")
     local originalPosition = element.Position
     return createLoopEffect(
-        element, "Position",
+        element,
         function(el) return el.Position end,
         function(el, orig, offset)
             el.Position = UDim2.new(orig.X.Scale, orig.X.Offset, orig.Y.Scale, orig.Y.Offset + offset)
@@ -106,10 +111,10 @@ end
 
 function Loop.breathe(element: GuiObject, config: LoopConfig?): EffectController
     assertArg(element, "element", "Instance")
-    local uiScale = Transform.getUIScale(element)
+    local uiScale = Transform._getUIScale(element)
     local originalScale = uiScale.Scale
     return createLoopEffect(
-        element, "Scale",
+        element,
         function(_) return originalScale end,
         function(_, orig, delta) uiScale.Scale = orig + delta end,
         function(elapsed, speed, intensity)
@@ -122,7 +127,7 @@ end
 function Loop.glow(element: GuiObject, config: LoopConfig?): EffectController
     assertArg(element, "element", "Instance")
     return createLoopEffect(
-        element, "BackgroundTransparency",
+        element,
         function(el) return el.BackgroundTransparency end,
         function(el, orig, delta)
             el.BackgroundTransparency = math.clamp(orig + delta, 0, 1)
@@ -137,7 +142,7 @@ end
 function Loop.swing(element: GuiObject, config: LoopConfig?): EffectController
     assertArg(element, "element", "Instance")
     return createLoopEffect(
-        element, "Rotation",
+        element,
         function(el) return el.Rotation end,
         function(el, orig, delta) el.Rotation = orig + delta end,
         function(elapsed, speed, intensity)
@@ -150,7 +155,7 @@ end
 function Loop.sway(element: GuiObject, config: LoopConfig?): EffectController
     assertArg(element, "element", "Instance")
     return createLoopEffect(
-        element, "Position",
+        element,
         function(el) return el.Position end,
         function(el, orig, offset)
             el.Position = UDim2.new(orig.X.Scale, orig.X.Offset + offset, orig.Y.Scale, orig.Y.Offset)
@@ -162,4 +167,4 @@ function Loop.sway(element: GuiObject, config: LoopConfig?): EffectController
     )
 end
 
-return Loop
+return table.freeze(Loop)

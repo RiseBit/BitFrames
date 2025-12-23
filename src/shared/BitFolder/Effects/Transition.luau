@@ -10,29 +10,31 @@
 --[[
     =========  MODULES  =========
 ]]
+local Config = require(script.Parent.Parent.Config)
 local Check = require(script.Parent.Parent.Utils.Check)
 local AnimationFactory = require(script.Parent.Parent.Core.AnimationFactory)
 local Helpers = require(script.Parent.Parent.Utils.Helpers)
 local Types = require(script.Parent.Parent.Core.Types)
 local spr = require(script.Parent.Parent.Dependencies.spr)
 
-local assertArg = Check.assertArg
-local setTransparency = Helpers.setTransparency
-local getEasing = Helpers.getEasing
+local assertArg = Check._assertArg
+local setTransparency = Helpers._setTransparency
+local getEasing = Helpers._getEasing
+local Defaults = Config.Defaults
 
 --[[
     =========  TYPES  =========
 ]]
 type TransitionConfig = Types.TransitionConfig
 type EffectController = Types.EffectController
+type SlideDirection = Types.SlideDirection
 
---[[
-    =========  CONSTANTS  =========
-]]
-local DEFAULT_DURATION = 0.3
-local DEFAULT_EASING = "OutQuad"
-local DEFAULT_DAMPING = 0.8
-local DEFAULT_FREQUENCY = 3
+local VALID_DIRECTIONS: {[string]: boolean} = {
+    left = true,
+    right = true,
+    up = true,
+    down = true,
+}
 
 --[[
     =========  MAIN MODULE  =========
@@ -50,8 +52,8 @@ function Transition.crossfade(fromElement: GuiObject, toElement: GuiObject, conf
     toElement.Visible = true
 
     if useSpring then
-        local damping = config and config.damping or DEFAULT_DAMPING
-        local frequency = config and config.frequency or DEFAULT_FREQUENCY
+        local damping = config and config.damping or Defaults.DAMPING
+        local frequency = config and config.frequency or Defaults.FREQUENCY
 
         spr.target(fromElement, damping, frequency, { BackgroundTransparency = 1 })
         spr.target(toElement, damping, frequency, { BackgroundTransparency = 0 })
@@ -91,8 +93,8 @@ function Transition.crossfade(fromElement: GuiObject, toElement: GuiObject, conf
         }
     end
 
-    local duration = config and config.duration or DEFAULT_DURATION
-    local easingFn = getEasing(config and config.easing or DEFAULT_EASING)
+    local duration = config and config.duration or Defaults.DURATION
+    local easingFn = getEasing(config and config.easing or Defaults.EASING)
     local elapsed = 0
 
     local function reset()
@@ -101,7 +103,7 @@ function Transition.crossfade(fromElement: GuiObject, toElement: GuiObject, conf
         fromElement.Visible = false
     end
 
-    local animation = AnimationFactory.create(
+    local animation = AnimationFactory._create(
         function(dt: number): boolean
             elapsed = elapsed + dt
             local t = math.clamp(elapsed / duration, 0, 1)
@@ -122,15 +124,19 @@ function Transition.crossfade(fromElement: GuiObject, toElement: GuiObject, conf
         nil
     )
 
-    AnimationFactory.start(animation)
-    return AnimationFactory.createController(animation, reset)
+    AnimationFactory._start(animation)
+    return AnimationFactory._createController(animation, reset)
 end
 
-function Transition.slideReplace(fromElement: GuiObject, toElement: GuiObject, direction: string?, config: TransitionConfig?): EffectController
+function Transition.slideReplace(fromElement: GuiObject, toElement: GuiObject, direction: SlideDirection?, config: TransitionConfig?): EffectController
     assertArg(fromElement, "fromElement", "Instance")
     assertArg(toElement, "toElement", "Instance")
 
     local dir = direction or "left"
+    if not VALID_DIRECTIONS[dir] then
+        warn(`[BitFrames] Invalid direction '{dir}', using default 'left'`)
+        dir = "left"
+    end
     local useSpring = config and config.spring
     local onComplete = config and config.onComplete
 
@@ -148,8 +154,8 @@ function Transition.slideReplace(fromElement: GuiObject, toElement: GuiObject, d
     toElement.Visible = true
 
     if useSpring then
-        local damping = config and config.damping or DEFAULT_DAMPING
-        local frequency = config and config.frequency or DEFAULT_FREQUENCY
+        local damping = config and config.damping or Defaults.DAMPING
+        local frequency = config and config.frequency or Defaults.FREQUENCY
         local fromTarget = UDim2.new(fromOriginal.X.Scale, fromOriginal.X.Offset + offsetX, fromOriginal.Y.Scale, fromOriginal.Y.Offset + offsetY)
 
         spr.target(fromElement, damping, frequency, { Position = fromTarget })
@@ -179,8 +185,8 @@ function Transition.slideReplace(fromElement: GuiObject, toElement: GuiObject, d
         }
     end
 
-    local duration = config and config.duration or DEFAULT_DURATION
-    local easingFn = getEasing(config and config.easing or DEFAULT_EASING)
+    local duration = config and config.duration or Defaults.DURATION
+    local easingFn = getEasing(config and config.easing or Defaults.EASING)
     local elapsed = 0
 
     local function reset()
@@ -190,7 +196,7 @@ function Transition.slideReplace(fromElement: GuiObject, toElement: GuiObject, d
         fromElement.Position = fromOriginal
     end
 
-    local animation = AnimationFactory.create(
+    local animation = AnimationFactory._create(
         function(dt: number): boolean
             elapsed = elapsed + dt
             local t = math.clamp(elapsed / duration, 0, 1)
@@ -211,8 +217,8 @@ function Transition.slideReplace(fromElement: GuiObject, toElement: GuiObject, d
         nil
     )
 
-    AnimationFactory.start(animation)
-    return AnimationFactory.createController(animation, reset)
+    AnimationFactory._start(animation)
+    return AnimationFactory._createController(animation, reset)
 end
 
-return Transition
+return table.freeze(Transition)

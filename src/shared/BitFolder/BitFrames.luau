@@ -7,6 +7,15 @@
 ]]
 
 --[[
+    =========  SERVICES  =========
+]]
+local RunService = game:GetService("RunService")
+
+if not RunService:IsClient() then
+    error("[BitFrames] This library can only be used on the client", 2)
+end
+
+--[[
     =========  MODULES  =========
 ]]
 local Config = require(script.Parent.Config)
@@ -60,7 +69,6 @@ export type BitFramesObject = {
     flash: (self: BitFramesObject, config: AttentionConfig?) -> EffectController,
     heartbeat: (self: BitFramesObject, config: AttentionConfig?) -> EffectController,
     jello: (self: BitFramesObject, config: AttentionConfig?) -> EffectController,
-    rubberBand: (self: BitFramesObject, config: AttentionConfig?) -> EffectController,
 
     -- Loop
     spin: (self: BitFramesObject, config: LoopConfig?) -> EffectController,
@@ -92,7 +100,7 @@ BitFrames.Transition = Transition
 BitFrames.Interaction = Interaction
 
 function BitFrames.new(instance: GuiObject): BitFramesObject
-    Check.assertGuiObject(instance, "instance")
+    Check._assertGuiObject(instance, "instance")
 
     return {
         -- Entrance
@@ -120,7 +128,6 @@ function BitFrames.new(instance: GuiObject): BitFramesObject
         flash = function(self, config) return Attention.flash(instance, config) end,
         heartbeat = function(self, config) return Attention.heartbeat(instance, config) end,
         jello = function(self, config) return Attention.jello(instance, config) end,
-        rubberBand = function(self, config) return Attention.rubberBand(instance, config) end,
 
         -- Loop
         spin = function(self, config) return Loop.spin(instance, config) end,
@@ -140,5 +147,14 @@ function BitFrames.new(instance: GuiObject): BitFramesObject
         fadeColor = function(self, toColor, config) return TextEffect.fadeColor(instance :: any, toColor, config) end,
     }
 end
+
+BitFrames.Entrance = Entrance
+BitFrames.Exit = Exit
+BitFrames.Attention = Attention
+BitFrames.Loop = Loop
+BitFrames.TextEffect = TextEffect
+BitFrames.Transition = Transition
+BitFrames.Interaction = Interaction
+BitFrames.Config = Config
 
 return BitFrames

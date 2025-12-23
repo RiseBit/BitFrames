@@ -18,20 +18,19 @@ end
 --[[
     =========  DEFAULTS  =========
 ]]
-local Defaults = {
-    TWEEN_DURATION = 0.3,
+local Defaults = table.freeze({
+    DURATION = 0.3,
     EASING = "OutQuad",
-    SPRING_DAMPING = 1,
-    SPRING_FREQUENCY = 1,
+    DAMPING = 0.8,
+    FREQUENCY = 3,
     DELAY = 0,
-}
+})
 
 --[[
     =========  EASING ENUM  =========
 ]]
 local Easing = createEnum("Easing", {
     "Linear",
-
     "InQuad", "OutQuad", "InOutQuad",
     "InCubic", "OutCubic", "InOutCubic",
     "InQuart", "OutQuart", "InOutQuart",
@@ -55,6 +54,24 @@ local Spring = {
     Slow = { damping = 0.9, frequency = 1 },
     Molasses = { damping = 1.2, frequency = 0.5 },
 }
+
+--[[
+    =========  TEXT EFFECT DEFAULTS  =========
+]]
+local TextDefaults = table.freeze({
+    TYPEWRITER_SPEED = 0.05,
+    CURSOR = "|",
+    SCRAMBLE_DURATION = 1,
+    SCRAMBLE_CHARS = "!@#$%^&*()_+-=[]{}|;:,.<>?",
+})
+
+--[[
+    =========  ATTENTION EFFECT DEFAULTS  =========
+]]
+local AttentionDefaults = table.freeze({
+    DURATION = 0.4,
+    LOOPS = 1,
+})
 
 --[[
     =========  PRESET ENUM  =========
@@ -82,4 +99,6 @@ return table.freeze({
     Easing = Easing,
     Spring = table.freeze(Spring),
     Preset = Preset,
+    TextDefaults = TextDefaults,
+    AttentionDefaults = AttentionDefaults,
 })

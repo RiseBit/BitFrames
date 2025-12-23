@@ -10,6 +10,7 @@
 --[[
     =========  MODULES  =========
 ]]
+local Config = require(script.Parent.Parent.Config)
 local Check = require(script.Parent.Parent.Utils.Check)
 local AnimationFactory = require(script.Parent.Parent.Core.AnimationFactory)
 local Helpers = require(script.Parent.Parent.Utils.Helpers)
@@ -17,23 +18,17 @@ local Transform = require(script.Parent.Parent.Utils.Transform)
 local Types = require(script.Parent.Parent.Core.Types)
 local spr = require(script.Parent.Parent.Dependencies.spr)
 
-local assertArg = Check.assertArg
-local setTransparency = Helpers.setTransparency
-local getEasing = Helpers.getEasing
+local assertArg = Check._assertArg
+local setTransparency = Helpers._setTransparency
+local getEasing = Helpers._getEasing
+local isValidElement = Helpers._isValidElement
+local Defaults = Config.Defaults
 
 --[[
     =========  TYPES  =========
 ]]
 type ExitConfig = Types.ExitConfig
 type EffectController = Types.EffectController
-
---[[
-    =========  CONSTANTS  =========
-]]
-local DEFAULT_DURATION = 0.3
-local DEFAULT_EASING = "OutQuad"
-local DEFAULT_DAMPING = 0.8
-local DEFAULT_FREQUENCY = 3
 
 --[[
     =========  MAIN MODULE  =========
@@ -48,10 +43,12 @@ function Exit.fadeOut(element: GuiObject, config: ExitConfig?): EffectController
     local onComplete = config and config.onComplete
 
     if useSpring then
-        local damping = config and config.damping or DEFAULT_DAMPING
-        local frequency = config and config.frequency or DEFAULT_FREQUENCY
+        local damping = config and config.damping or Defaults.DAMPING
+        local frequency = config and config.frequency or Defaults.FREQUENCY
+        local cancelled = false
 
         task.delay(delay, function()
+            if cancelled or not isValidElement(element) then return end
             spr.target(element, damping, frequency, { BackgroundTransparency = 1 })
             if element:IsA("TextLabel") or element:IsA("TextButton") or element:IsA("TextBox") then
                 spr.target(element, damping, frequency, { TextTransparency = 1 })
@@ -66,18 +63,23 @@ function Exit.fadeOut(element: GuiObject, config: ExitConfig?): EffectController
 
         return {
             stop = function(self)
+                cancelled = true
                 spr.stop(element)
             end,
-            pause = function(self) end,
-            resume = function(self) end,
+            pause = function(self)
+                warn("[BitFrames] pause() is not supported for spring animations")
+            end,
+            resume = function(self)
+                warn("[BitFrames] resume() is not supported for spring animations")
+            end,
         }
     end
 
-    local duration = config and config.duration or DEFAULT_DURATION
-    local easingFn = getEasing(config and config.easing or DEFAULT_EASING)
+    local duration = config and config.duration or Defaults.DURATION
+    local easingFn = getEasing(config and config.easing or Defaults.EASING)
     local elapsed = -delay
 
-    local animation = AnimationFactory.create(
+    local animation = AnimationFactory._create(
         function(dt: number): boolean
             elapsed = elapsed + dt
             if elapsed < 0 then return false end
@@ -95,8 +97,8 @@ function Exit.fadeOut(element: GuiObject, config: ExitConfig?): EffectController
         nil
     )
 
-    AnimationFactory.start(animation)
-    return AnimationFactory.createController(animation, nil)
+    AnimationFactory._start(animation)
+    return AnimationFactory._createController(animation, nil)
 end
 
 function Exit.fadeOutUp(element: GuiObject, config: ExitConfig?): EffectController
@@ -109,8 +111,8 @@ function Exit.fadeOutUp(element: GuiObject, config: ExitConfig?): EffectControll
     local offsetY = -20
 
     if useSpring then
-        local damping = config and config.damping or DEFAULT_DAMPING
-        local frequency = config and config.frequency or DEFAULT_FREQUENCY
+        local damping = config and config.damping or Defaults.DAMPING
+        local frequency = config and config.frequency or Defaults.FREQUENCY
         local targetPos = UDim2.new(originalPosition.X.Scale, originalPosition.X.Offset, originalPosition.Y.Scale, originalPosition.Y.Offset + offsetY)
 
         task.delay(delay, function()
@@ -136,15 +138,15 @@ function Exit.fadeOutUp(element: GuiObject, config: ExitConfig?): EffectControll
         }
     end
 
-    local duration = config and config.duration or DEFAULT_DURATION
-    local easingFn = getEasing(config and config.easing or DEFAULT_EASING)
+    local duration = config and config.duration or Defaults.DURATION
+    local easingFn = getEasing(config and config.easing or Defaults.EASING)
     local elapsed = -delay
 
     local function reset()
         element.Position = originalPosition
     end
 
-    local animation = AnimationFactory.create(
+    local animation = AnimationFactory._create(
         function(dt: number): boolean
             elapsed = elapsed + dt
             if elapsed < 0 then return false end
@@ -165,8 +167,8 @@ function Exit.fadeOutUp(element: GuiObject, config: ExitConfig?): EffectControll
         reset
     )
 
-    AnimationFactory.start(animation)
-    return AnimationFactory.createController(animation, reset)
+    AnimationFactory._start(animation)
+    return AnimationFactory._createController(animation, reset)
 end
 
 function Exit.fadeOutDown(element: GuiObject, config: ExitConfig?): EffectController
@@ -179,8 +181,8 @@ function Exit.fadeOutDown(element: GuiObject, config: ExitConfig?): EffectContro
     local offsetY = 20
 
     if useSpring then
-        local damping = config and config.damping or DEFAULT_DAMPING
-        local frequency = config and config.frequency or DEFAULT_FREQUENCY
+        local damping = config and config.damping or Defaults.DAMPING
+        local frequency = config and config.frequency or Defaults.FREQUENCY
         local targetPos = UDim2.new(originalPosition.X.Scale, originalPosition.X.Offset, originalPosition.Y.Scale, originalPosition.Y.Offset + offsetY)
 
         task.delay(delay, function()
@@ -206,15 +208,15 @@ function Exit.fadeOutDown(element: GuiObject, config: ExitConfig?): EffectContro
         }
     end
 
-    local duration = config and config.duration or DEFAULT_DURATION
-    local easingFn = getEasing(config and config.easing or DEFAULT_EASING)
+    local duration = config and config.duration or Defaults.DURATION
+    local easingFn = getEasing(config and config.easing or Defaults.EASING)
     local elapsed = -delay
 
     local function reset()
         element.Position = originalPosition
     end
 
-    local animation = AnimationFactory.create(
+    local animation = AnimationFactory._create(
         function(dt: number): boolean
             elapsed = elapsed + dt
             if elapsed < 0 then return false end
@@ -235,8 +237,8 @@ function Exit.fadeOutDown(element: GuiObject, config: ExitConfig?): EffectContro
         reset
     )
 
-    AnimationFactory.start(animation)
-    return AnimationFactory.createController(animation, reset)
+    AnimationFactory._start(animation)
+    return AnimationFactory._createController(animation, reset)
 end
 
 function Exit.scaleOut(element: GuiObject, config: ExitConfig?): EffectController
@@ -245,12 +247,12 @@ function Exit.scaleOut(element: GuiObject, config: ExitConfig?): EffectControlle
     local useSpring = config and config.spring
     local delay = config and config.delay or 0
     local onComplete = config and config.onComplete
-    local uiScale = Transform.getUIScale(element)
+    local uiScale = Transform._getUIScale(element)
     local originalScale = uiScale.Scale
 
     if useSpring then
-        local damping = config and config.damping or DEFAULT_DAMPING
-        local frequency = config and config.frequency or DEFAULT_FREQUENCY
+        local damping = config and config.damping or Defaults.DAMPING
+        local frequency = config and config.frequency or Defaults.FREQUENCY
 
         task.delay(delay, function()
             spr.target(element, damping, frequency, { BackgroundTransparency = 1 })
@@ -277,15 +279,15 @@ function Exit.scaleOut(element: GuiObject, config: ExitConfig?): EffectControlle
         }
     end
 
-    local duration = config and config.duration or DEFAULT_DURATION
-    local easingFn = getEasing(config and config.easing or DEFAULT_EASING)
+    local duration = config and config.duration or Defaults.DURATION
+    local easingFn = getEasing(config and config.easing or Defaults.EASING)
     local elapsed = -delay
 
     local function reset()
         uiScale.Scale = originalScale
     end
 
-    local animation = AnimationFactory.create(
+    local animation = AnimationFactory._create(
         function(dt: number): boolean
             elapsed = elapsed + dt
             if elapsed < 0 then return false end
@@ -306,8 +308,8 @@ function Exit.scaleOut(element: GuiObject, config: ExitConfig?): EffectControlle
         reset
     )
 
-    AnimationFactory.start(animation)
-    return AnimationFactory.createController(animation, reset)
+    AnimationFactory._start(animation)
+    return AnimationFactory._createController(animation, reset)
 end
 
 function Exit.shrinkOut(element: GuiObject, config: ExitConfig?): EffectController
@@ -316,12 +318,12 @@ function Exit.shrinkOut(element: GuiObject, config: ExitConfig?): EffectControll
     local useSpring = config and config.spring
     local delay = config and config.delay or 0
     local onComplete = config and config.onComplete
-    local uiScale = Transform.getUIScale(element)
+    local uiScale = Transform._getUIScale(element)
     local originalScale = uiScale.Scale
 
     if useSpring then
-        local damping = config and config.damping or DEFAULT_DAMPING
-        local frequency = config and config.frequency or DEFAULT_FREQUENCY
+        local damping = config and config.damping or Defaults.DAMPING
+        local frequency = config and config.frequency or Defaults.FREQUENCY
 
         task.delay(delay, function()
             spr.target(element, damping, frequency, { BackgroundTransparency = 1 })
@@ -348,15 +350,15 @@ function Exit.shrinkOut(element: GuiObject, config: ExitConfig?): EffectControll
         }
     end
 
-    local duration = config and config.duration or DEFAULT_DURATION
-    local easingFn = getEasing(config and config.easing or DEFAULT_EASING)
+    local duration = config and config.duration or Defaults.DURATION
+    local easingFn = getEasing(config and config.easing or Defaults.EASING)
     local elapsed = -delay
 
     local function reset()
         uiScale.Scale = originalScale
     end
 
-    local animation = AnimationFactory.create(
+    local animation = AnimationFactory._create(
         function(dt: number): boolean
             elapsed = elapsed + dt
             if elapsed < 0 then return false end
@@ -377,8 +379,8 @@ function Exit.shrinkOut(element: GuiObject, config: ExitConfig?): EffectControll
         reset
     )
 
-    AnimationFactory.start(animation)
-    return AnimationFactory.createController(animation, reset)
+    AnimationFactory._start(animation)
+    return AnimationFactory._createController(animation, reset)
 end
 
 function Exit.zoomOut(element: GuiObject, config: ExitConfig?): EffectController
@@ -387,12 +389,12 @@ function Exit.zoomOut(element: GuiObject, config: ExitConfig?): EffectController
     local useSpring = config and config.spring
     local delay = config and config.delay or 0
     local onComplete = config and config.onComplete
-    local uiScale = Transform.getUIScale(element)
+    local uiScale = Transform._getUIScale(element)
     local originalScale = uiScale.Scale
 
     if useSpring then
-        local damping = config and config.damping or DEFAULT_DAMPING
-        local frequency = config and config.frequency or DEFAULT_FREQUENCY
+        local damping = config and config.damping or Defaults.DAMPING
+        local frequency = config and config.frequency or Defaults.FREQUENCY
 
         task.delay(delay, function()
             spr.target(element, damping, frequency, { BackgroundTransparency = 1 })
@@ -419,15 +421,15 @@ function Exit.zoomOut(element: GuiObject, config: ExitConfig?): EffectController
         }
     end
 
-    local duration = config and config.duration or DEFAULT_DURATION
-    local easingFn = getEasing(config and config.easing or DEFAULT_EASING)
+    local duration = config and config.duration or Defaults.DURATION
+    local easingFn = getEasing(config and config.easing or Defaults.EASING)
     local elapsed = -delay
 
     local function reset()
         uiScale.Scale = originalScale
     end
 
-    local animation = AnimationFactory.create(
+    local animation = AnimationFactory._create(
         function(dt: number): boolean
             elapsed = elapsed + dt
             if elapsed < 0 then return false end
@@ -448,8 +450,8 @@ function Exit.zoomOut(element: GuiObject, config: ExitConfig?): EffectController
         reset
     )
 
-    AnimationFactory.start(animation)
-    return AnimationFactory.createController(animation, reset)
+    AnimationFactory._start(animation)
+    return AnimationFactory._createController(animation, reset)
 end
 
-return Exit
+return table.freeze(Exit)

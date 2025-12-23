@@ -9,29 +9,28 @@
 --[[
     =========  MODULES  =========
 ]]
+local Config = require(script.Parent.Parent.Config)
 local Check = require(script.Parent.Parent.Utils.Check)
 local AnimationFactory = require(script.Parent.Parent.Core.AnimationFactory)
+local Helpers = require(script.Parent.Parent.Utils.Helpers)
 local Types = require(script.Parent.Parent.Core.Types)
 
-local assertArg = Check.assertArg
+local assertArg = Check._assertArg
+local isValidElement = Helpers._isValidElement
+local TextDefaults = Config.TextDefaults
 
 --[[
     =========  TYPES  =========
 ]]
 type TypewriterConfig = Types.TypewriterConfig
 type ScrambleConfig = Types.ScrambleConfig
+type RollValueConfig = Types.RollValueConfig
 type ColorCycleConfig = Types.ColorCycleConfig
 type ColorPulseConfig = Types.ColorPulseConfig
 type GlitchConfig = Types.GlitchConfig
 type EffectController = Types.EffectController
 
---[[
-    =========  CONSTANTS  =========
-]]
-local DEFAULT_TYPEWRITER_SPEED = 0.05
-local DEFAULT_CURSOR = "|"
-local DEFAULT_SCRAMBLE_DURATION = 1
-local DEFAULT_SCRAMBLE_CHARS = "!@#$%^&*()_+-=[]{}|;:,.<>?"
+
 
 --[[
     =========  HELPER FUNCTIONS  =========
@@ -58,8 +57,8 @@ function TextEffect.typewriter(element: TextLabel | TextButton | TextBox, text: 
     end
 
     local textElement = element :: TextLabel
-    local speed = config and config.speed or DEFAULT_TYPEWRITER_SPEED
-    local cursor = config and config.cursor or DEFAULT_CURSOR
+    local speed = config and config.speed or TextDefaults.TYPEWRITER_SPEED
+    local cursor = config and config.cursor or TextDefaults.CURSOR
     local onComplete = config and config.onComplete
 
     local elapsed = 0
@@ -74,7 +73,7 @@ function TextEffect.typewriter(element: TextLabel | TextButton | TextBox, text: 
         textElement.Text = text
     end
 
-    local animation = AnimationFactory.create(
+    local animation = AnimationFactory._create(
         function(dt: number): boolean
             elapsed = elapsed + dt
             cursorTimer = cursorTimer + dt
@@ -104,8 +103,8 @@ function TextEffect.typewriter(element: TextLabel | TextButton | TextBox, text: 
         reset
     )
 
-    AnimationFactory.start(animation)
-    return AnimationFactory.createController(animation, reset)
+    AnimationFactory._start(animation)
+    return AnimationFactory._createController(animation, reset)
 end
 
 function TextEffect.scramble(element: TextLabel | TextButton | TextBox, text: string, config: ScrambleConfig?): EffectController
@@ -117,35 +116,46 @@ function TextEffect.scramble(element: TextLabel | TextButton | TextBox, text: st
     end
 
     local textElement = element :: TextLabel
-    local duration = config and config.duration or DEFAULT_SCRAMBLE_DURATION
-    local chars = config and config.chars or DEFAULT_SCRAMBLE_CHARS
+    local duration = math.max(config and config.duration or TextDefaults.SCRAMBLE_DURATION, 0.001)
+    local chars = config and config.chars or TextDefaults.SCRAMBLE_CHARS
+    local charsLen = #chars
     local onComplete = config and config.onComplete
+
+    if charsLen == 0 then
+        chars = TextDefaults.SCRAMBLE_CHARS
+        charsLen = #chars
+    end
 
     local elapsed = 0
     local totalChars = #text
     local random = Random.new()
 
     local function reset()
-        textElement.Text = text
+        if isValidElement(textElement) then
+            textElement.Text = text
+        end
     end
 
-    local animation = AnimationFactory.create(
+    local animation = AnimationFactory._create(
         function(dt: number): boolean
+            if not isValidElement(textElement) then return true end
+            
             elapsed = elapsed + dt
             local progress = math.clamp(elapsed / duration, 0, 1)
 
             local revealedCount = math.floor(progress * totalChars)
-            local result = ""
+            local charTable = table.create(totalChars)
 
             for i = 1, totalChars do
                 if i <= revealedCount then
-                    result = result .. string.sub(text, i, i)
+                    charTable[i] = string.sub(text, i, i)
                 else
-                    result = result .. string.sub(chars, random:NextInteger(1, #chars), random:NextInteger(1, #chars))
+                    local idx = random:NextInteger(1, charsLen)
+                    charTable[i] = string.sub(chars, idx, idx)
                 end
             end
 
-            textElement.Text = result
+            textElement.Text = table.concat(charTable)
 
             if progress >= 1 then
                 textElement.Text = text
@@ -157,8 +167,8 @@ function TextEffect.scramble(element: TextLabel | TextButton | TextBox, text: st
         reset
     )
 
-    AnimationFactory.start(animation)
-    return AnimationFactory.createController(animation, reset)
+    AnimationFactory._start(animation)
+    return AnimationFactory._createController(animation, reset)
 end
 
 function TextEffect.colorCycle(element: TextLabel | TextButton | TextBox, config: ColorCycleConfig?): EffectController
@@ -180,7 +190,7 @@ function TextEffect.colorCycle(element: TextLabel | TextButton | TextBox, config
         textElement.TextColor3 = originalColor
     end
 
-    local animation = AnimationFactory.create(
+    local animation = AnimationFactory._create(
         function(dt: number): boolean
             elapsed = elapsed + dt * speed
             textElement.TextColor3 = hsvToColor3(elapsed, saturation, brightness)
@@ -190,8 +200,8 @@ function TextEffect.colorCycle(element: TextLabel | TextButton | TextBox, config
         reset
     )
 
-    AnimationFactory.start(animation)
-    return AnimationFactory.createController(animation, reset)
+    AnimationFactory._start(animation)
+    return AnimationFactory._createController(animation, reset)
 end
 
 function TextEffect.colorPulse(element: TextLabel | TextButton | TextBox, config: ColorPulseConfig?): EffectController
@@ -213,7 +223,7 @@ function TextEffect.colorPulse(element: TextLabel | TextButton | TextBox, config
         textElement.TextColor3 = originalColor
     end
 
-    local animation = AnimationFactory.create(
+    local animation = AnimationFactory._create(
         function(dt: number): boolean
             elapsed = elapsed + dt * speed
             local progress = (math.sin(elapsed * math.pi * 2) + 1) / 2
@@ -224,8 +234,8 @@ function TextEffect.colorPulse(element: TextLabel | TextButton | TextBox, config
         reset
     )
 
-    AnimationFactory.start(animation)
-    return AnimationFactory.createController(animation, reset)
+    AnimationFactory._start(animation)
+    return AnimationFactory._createController(animation, reset)
 end
 
 function TextEffect.glitch(element: TextLabel | TextButton | TextBox, config: GlitchConfig?): EffectController
@@ -252,7 +262,7 @@ function TextEffect.glitch(element: TextLabel | TextButton | TextBox, config: Gl
         textElement.TextColor3 = originalColor
     end
 
-    local animation = AnimationFactory.create(
+    local animation = AnimationFactory._create(
         function(dt: number): boolean
             elapsed = elapsed + dt
 
@@ -287,8 +297,8 @@ function TextEffect.glitch(element: TextLabel | TextButton | TextBox, config: Gl
         reset
     )
 
-    AnimationFactory.start(animation)
-    return AnimationFactory.createController(animation, reset)
+    AnimationFactory._start(animation)
+    return AnimationFactory._createController(animation, reset)
 end
 
 function TextEffect.fadeColor(element: TextLabel | TextButton | TextBox, toColor: Color3, config: Types.TransitionConfig?): EffectController
@@ -305,7 +315,7 @@ function TextEffect.fadeColor(element: TextLabel | TextButton | TextBox, toColor
     local fromColor = textElement.TextColor3
     local elapsed = 0
 
-    local animation = AnimationFactory.create(
+    local animation = AnimationFactory._create(
         function(dt: number): boolean
             elapsed = elapsed + dt
             local progress = math.clamp(elapsed / duration, 0, 1)
@@ -321,8 +331,83 @@ function TextEffect.fadeColor(element: TextLabel | TextButton | TextBox, toColor
         nil
     )
 
-    AnimationFactory.start(animation)
-    return AnimationFactory.createController(animation, nil)
+    AnimationFactory._start(animation)
+    return AnimationFactory._createController(animation, nil)
 end
 
-return TextEffect
+function TextEffect.rollValue(element: TextLabel | TextButton | TextBox, targetValue: number, config: RollValueConfig?): EffectController
+    assertArg(element, "element", "Instance")
+    assertArg(targetValue, "targetValue", "number")
+
+    if not isTextElement(element) then
+        error("Element must be TextLabel, TextButton, or TextBox", 2)
+    end
+
+    local textElement = element :: TextLabel
+    local duration = math.max(config and config.duration or 0.5, 0.001)
+    local easingName = config and config.easing or "OutQuad"
+    local prefix = config and config.prefix or ""
+    local suffix = config and config.suffix or ""
+    local decimals = config and config.decimals or 0
+    local useSeparator = config and config.separator or false
+    local onComplete = config and config.onComplete
+
+    local currentText = textElement.Text:gsub("[^%d%.%-]", "")
+    local startValue = tonumber(currentText) or 0
+    local elapsed = 0
+
+    local easingFn = Helpers._getEasing(easingName)
+
+    local function formatNumber(value: number): string
+        local formatted: string
+        if decimals > 0 then
+            formatted = string.format("%%.%df", decimals):format(value)
+        else
+            formatted = tostring(math.floor(value + 0.5))
+        end
+
+        if useSeparator then
+            local k
+            local intPart, decPart = formatted:match("([^.]+)(%.?.*)")
+            while true do
+                intPart, k = intPart:gsub("^(-?%d+)(%d%d%d)", "%1,%2")
+                if k == 0 then break end
+            end
+            formatted = intPart .. (decPart or "")
+        end
+
+        return prefix .. formatted .. suffix
+    end
+
+    local function reset()
+        if isValidElement(textElement) then
+            textElement.Text = formatNumber(targetValue)
+        end
+    end
+
+    local animation = AnimationFactory._create(
+        function(dt: number): boolean
+            if not isValidElement(textElement) then return true end
+
+            elapsed = elapsed + dt
+            local progress = math.clamp(elapsed / duration, 0, 1)
+            local easedProgress = easingFn(progress)
+            local currentValue = startValue + (targetValue - startValue) * easedProgress
+
+            textElement.Text = formatNumber(currentValue)
+
+            if progress >= 1 then
+                textElement.Text = formatNumber(targetValue)
+                return true
+            end
+            return false
+        end,
+        onComplete,
+        reset
+    )
+
+    AnimationFactory._start(animation)
+    return AnimationFactory._createController(animation, reset)
+end
+
+return table.freeze(TextEffect)

@@ -1,3 +1,4 @@
+--!native
 --!strict
 --[[
     =========  SERVICES  =========
@@ -29,12 +30,14 @@ local animationCount = 0
 local random = Random.new()
 local connection: RBXScriptConnection? = nil
 local Check = require(script.Parent.Parent.Utils.Check)
-local assertArg = Check.assertArg
+local assertArg = Check._assertArg
 
 local function startLoop()
     if connection then return end
     
     connection = RunService.RenderStepped:Connect(function(dt: number)
+        local toComplete: { Animation } = {}
+        
         for id, animation in activeAnimations do
             if animation.state == "paused" then continue end
             
@@ -44,8 +47,12 @@ local function startLoop()
                 animation.state = "completed"
                 activeAnimations[id] = nil
                 animationCount -= 1
-                animation:_fireComplete()
+                table.insert(toComplete, animation)
             end
+        end
+        
+        for _, animation in toComplete do
+            animation:_fireComplete()
         end
         
         if animationCount == 0 then
@@ -63,12 +70,12 @@ end
 local Scheduler = {}
 
 function Scheduler._generateId(): string
-    local id = ""
-    for _ = 1, GENERATE_ID_LENGTH do
+    local chars = table.create(GENERATE_ID_LENGTH)
+    for i = 1, GENERATE_ID_LENGTH do
         local index = random:NextInteger(1, #GENERATE_ID_CHARS)
-        id ..= string.sub(GENERATE_ID_CHARS, index, index)
+        chars[i] = string.sub(GENERATE_ID_CHARS, index, index)
     end
-    return id
+    return table.concat(chars)
 end
 
 function Scheduler._add(animation: Animation)
@@ -117,35 +124,5 @@ function Scheduler._stop(animation: Animation)
     animation:_fireInterrupt()
 end
 
-function Scheduler._pauseAll()
-    for _, animation in activeAnimations do
-        animation.state = "paused"
-    end
-end
-
-function Scheduler._resumeAll()
-    for _, animation in activeAnimations do
-        animation.state = "playing"
-    end
-end
-
-function Scheduler._stopAll()
-    for _, animation in activeAnimations do
-        animation.state = "stopped"
-        animation:_fireInterrupt()
-    end
-    activeAnimations = {}
-    animationCount = 0
-end
-
-function Scheduler._getActiveCount(): number
-    return animationCount
-end
-
-function Scheduler._isActive(animation: Animation): boolean
-    assertArg(animation, "animation", "table")
-    return activeAnimations[animation.id] ~= nil
-end
-
-return Scheduler
+return table.freeze(Scheduler)
 

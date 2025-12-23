@@ -10,6 +10,7 @@
 --[[
     =========  MODULES  =========
 ]]
+local Config = require(script.Parent.Parent.Config)
 local Check = require(script.Parent.Parent.Utils.Check)
 local AnimationFactory = require(script.Parent.Parent.Core.AnimationFactory)
 local Easing = require(script.Parent.Parent.Utils.Easing)
@@ -18,23 +19,17 @@ local Transform = require(script.Parent.Parent.Utils.Transform)
 local Types = require(script.Parent.Parent.Core.Types)
 local spr = require(script.Parent.Parent.Dependencies.spr)
 
-local assertArg = Check.assertArg
-local setTransparency = Helpers.setTransparency
-local getEasing = Helpers.getEasing
+local assertArg = Check._assertArg
+local setTransparency = Helpers._setTransparency
+local getEasing = Helpers._getEasing
+local isValidElement = Helpers._isValidElement
+local Defaults = Config.Defaults
 
 --[[
     =========  TYPES  =========
 ]]
 type EntranceConfig = Types.EntranceConfig
 type EffectController = Types.EffectController
-
---[[
-    =========  CONSTANTS  =========
-]]
-local DEFAULT_DURATION = 0.3
-local DEFAULT_EASING = "OutQuad"
-local DEFAULT_DAMPING = 0.8
-local DEFAULT_FREQUENCY = 3
 
 --[[
     =========  MAIN MODULE  =========
@@ -51,10 +46,12 @@ function Entrance.fadeIn(element: GuiObject, config: EntranceConfig?): EffectCon
     setTransparency(element, 1)
 
     if useSpring then
-        local damping = config and config.damping or DEFAULT_DAMPING
-        local frequency = config and config.frequency or DEFAULT_FREQUENCY
+        local damping = config and config.damping or Defaults.DAMPING
+        local frequency = config and config.frequency or Defaults.FREQUENCY
+        local cancelled = false
 
         task.delay(delay, function()
+            if cancelled or not isValidElement(element) then return end
             spr.target(element, damping, frequency, { BackgroundTransparency = 0 })
             if element:IsA("TextLabel") or element:IsA("TextButton") or element:IsA("TextBox") then
                 spr.target(element, damping, frequency, { TextTransparency = 0 })
@@ -69,24 +66,35 @@ function Entrance.fadeIn(element: GuiObject, config: EntranceConfig?): EffectCon
 
         return {
             stop = function(self)
+                cancelled = true
                 spr.stop(element)
-                setTransparency(element, 0)
+                if isValidElement(element) then
+                    setTransparency(element, 0)
+                end
             end,
-            pause = function(self) end,
-            resume = function(self) end,
+            pause = function(self)
+                warn("[BitFrames] pause() is not supported for spring animations")
+            end,
+            resume = function(self)
+                warn("[BitFrames] resume() is not supported for spring animations")
+            end,
         }
     end
 
-    local duration = config and config.duration or DEFAULT_DURATION
-    local easingFn = getEasing(config and config.easing or DEFAULT_EASING)
+    local duration = math.max(config and config.duration or Defaults.DURATION, 0.001)
+    local easingFn = getEasing(config and config.easing or Defaults.EASING)
     local elapsed = -delay
 
     local function reset()
-        setTransparency(element, 0)
+        if isValidElement(element) then
+            setTransparency(element, 0)
+        end
     end
 
-    local animation = AnimationFactory.create(
+    local animation = AnimationFactory._create(
         function(dt: number): boolean
+            if not isValidElement(element) then return true end
+            
             elapsed = elapsed + dt
             if elapsed < 0 then return false end
 
@@ -103,8 +111,8 @@ function Entrance.fadeIn(element: GuiObject, config: EntranceConfig?): EffectCon
         reset
     )
 
-    AnimationFactory.start(animation)
-    return AnimationFactory.createController(animation, reset)
+    AnimationFactory._start(animation)
+    return AnimationFactory._createController(animation, reset)
 end
 
 function Entrance.fadeInUp(element: GuiObject, config: EntranceConfig?): EffectController
@@ -120,8 +128,8 @@ function Entrance.fadeInUp(element: GuiObject, config: EntranceConfig?): EffectC
     element.Position = UDim2.new(originalPosition.X.Scale, originalPosition.X.Offset, originalPosition.Y.Scale, originalPosition.Y.Offset + offsetY)
 
     if useSpring then
-        local damping = config and config.damping or DEFAULT_DAMPING
-        local frequency = config and config.frequency or DEFAULT_FREQUENCY
+        local damping = config and config.damping or Defaults.DAMPING
+        local frequency = config and config.frequency or Defaults.FREQUENCY
 
         task.delay(delay, function()
             spr.target(element, damping, frequency, {
@@ -150,8 +158,8 @@ function Entrance.fadeInUp(element: GuiObject, config: EntranceConfig?): EffectC
         }
     end
 
-    local duration = config and config.duration or DEFAULT_DURATION
-    local easingFn = getEasing(config and config.easing or DEFAULT_EASING)
+    local duration = config and config.duration or Defaults.DURATION
+    local easingFn = getEasing(config and config.easing or Defaults.EASING)
     local elapsed = -delay
 
     local function reset()
@@ -159,7 +167,7 @@ function Entrance.fadeInUp(element: GuiObject, config: EntranceConfig?): EffectC
         element.Position = originalPosition
     end
 
-    local animation = AnimationFactory.create(
+    local animation = AnimationFactory._create(
         function(dt: number): boolean
             elapsed = elapsed + dt
             if elapsed < 0 then return false end
@@ -180,8 +188,8 @@ function Entrance.fadeInUp(element: GuiObject, config: EntranceConfig?): EffectC
         reset
     )
 
-    AnimationFactory.start(animation)
-    return AnimationFactory.createController(animation, reset)
+    AnimationFactory._start(animation)
+    return AnimationFactory._createController(animation, reset)
 end
 
 function Entrance.fadeInDown(element: GuiObject, config: EntranceConfig?): EffectController
@@ -197,8 +205,8 @@ function Entrance.fadeInDown(element: GuiObject, config: EntranceConfig?): Effec
     element.Position = UDim2.new(originalPosition.X.Scale, originalPosition.X.Offset, originalPosition.Y.Scale, originalPosition.Y.Offset + offsetY)
 
     if useSpring then
-        local damping = config and config.damping or DEFAULT_DAMPING
-        local frequency = config and config.frequency or DEFAULT_FREQUENCY
+        local damping = config and config.damping or Defaults.DAMPING
+        local frequency = config and config.frequency or Defaults.FREQUENCY
 
         task.delay(delay, function()
             spr.target(element, damping, frequency, {
@@ -227,8 +235,8 @@ function Entrance.fadeInDown(element: GuiObject, config: EntranceConfig?): Effec
         }
     end
 
-    local duration = config and config.duration or DEFAULT_DURATION
-    local easingFn = getEasing(config and config.easing or DEFAULT_EASING)
+    local duration = config and config.duration or Defaults.DURATION
+    local easingFn = getEasing(config and config.easing or Defaults.EASING)
     local elapsed = -delay
 
     local function reset()
@@ -236,7 +244,7 @@ function Entrance.fadeInDown(element: GuiObject, config: EntranceConfig?): Effec
         element.Position = originalPosition
     end
 
-    local animation = AnimationFactory.create(
+    local animation = AnimationFactory._create(
         function(dt: number): boolean
             elapsed = elapsed + dt
             if elapsed < 0 then return false end
@@ -257,8 +265,8 @@ function Entrance.fadeInDown(element: GuiObject, config: EntranceConfig?): Effec
         reset
     )
 
-    AnimationFactory.start(animation)
-    return AnimationFactory.createController(animation, reset)
+    AnimationFactory._start(animation)
+    return AnimationFactory._createController(animation, reset)
 end
 
 function Entrance.scaleIn(element: GuiObject, config: EntranceConfig?): EffectController
@@ -267,14 +275,14 @@ function Entrance.scaleIn(element: GuiObject, config: EntranceConfig?): EffectCo
     local useSpring = config and config.spring
     local delay = config and config.delay or 0
     local onComplete = config and config.onComplete
-    local uiScale = Transform.getUIScale(element)
+    local uiScale = Transform._getUIScale(element)
 
     setTransparency(element, 1)
     uiScale.Scale = 0.8
 
     if useSpring then
-        local damping = config and config.damping or DEFAULT_DAMPING
-        local frequency = config and config.frequency or DEFAULT_FREQUENCY
+        local damping = config and config.damping or Defaults.DAMPING
+        local frequency = config and config.frequency or Defaults.FREQUENCY
 
         task.delay(delay, function()
             spr.target(element, damping, frequency, { BackgroundTransparency = 0 })
@@ -302,8 +310,8 @@ function Entrance.scaleIn(element: GuiObject, config: EntranceConfig?): EffectCo
         }
     end
 
-    local duration = config and config.duration or DEFAULT_DURATION
-    local easingFn = getEasing(config and config.easing or DEFAULT_EASING)
+    local duration = config and config.duration or Defaults.DURATION
+    local easingFn = getEasing(config and config.easing or Defaults.EASING)
     local elapsed = -delay
 
     local function reset()
@@ -311,7 +319,7 @@ function Entrance.scaleIn(element: GuiObject, config: EntranceConfig?): EffectCo
         uiScale.Scale = 1
     end
 
-    local animation = AnimationFactory.create(
+    local animation = AnimationFactory._create(
         function(dt: number): boolean
             elapsed = elapsed + dt
             if elapsed < 0 then return false end
@@ -332,8 +340,8 @@ function Entrance.scaleIn(element: GuiObject, config: EntranceConfig?): EffectCo
         reset
     )
 
-    AnimationFactory.start(animation)
-    return AnimationFactory.createController(animation, reset)
+    AnimationFactory._start(animation)
+    return AnimationFactory._createController(animation, reset)
 end
 
 function Entrance.scaleInBounce(element: GuiObject, config: EntranceConfig?): EffectController
@@ -342,7 +350,7 @@ function Entrance.scaleInBounce(element: GuiObject, config: EntranceConfig?): Ef
     local useSpring = config and config.spring
     local delay = config and config.delay or 0
     local onComplete = config and config.onComplete
-    local uiScale = Transform.getUIScale(element)
+    local uiScale = Transform._getUIScale(element)
 
     setTransparency(element, 1)
     uiScale.Scale = 0.5
@@ -386,7 +394,7 @@ function Entrance.scaleInBounce(element: GuiObject, config: EntranceConfig?): Ef
         uiScale.Scale = 1
     end
 
-    local animation = AnimationFactory.create(
+    local animation = AnimationFactory._create(
         function(dt: number): boolean
             elapsed = elapsed + dt
             if elapsed < 0 then return false end
@@ -405,8 +413,8 @@ function Entrance.scaleInBounce(element: GuiObject, config: EntranceConfig?): Ef
         reset
     )
 
-    AnimationFactory.start(animation)
-    return AnimationFactory.createController(animation, reset)
+    AnimationFactory._start(animation)
+    return AnimationFactory._createController(animation, reset)
 end
 
 function Entrance.zoomIn(element: GuiObject, config: EntranceConfig?): EffectController
@@ -415,14 +423,14 @@ function Entrance.zoomIn(element: GuiObject, config: EntranceConfig?): EffectCon
     local useSpring = config and config.spring
     local delay = config and config.delay or 0
     local onComplete = config and config.onComplete
-    local uiScale = Transform.getUIScale(element)
+    local uiScale = Transform._getUIScale(element)
 
     setTransparency(element, 1)
     uiScale.Scale = 0
 
     if useSpring then
-        local damping = config and config.damping or DEFAULT_DAMPING
-        local frequency = config and config.frequency or DEFAULT_FREQUENCY
+        local damping = config and config.damping or Defaults.DAMPING
+        local frequency = config and config.frequency or Defaults.FREQUENCY
 
         task.delay(delay, function()
             spr.target(element, damping, frequency, { BackgroundTransparency = 0 })
@@ -450,8 +458,8 @@ function Entrance.zoomIn(element: GuiObject, config: EntranceConfig?): EffectCon
         }
     end
 
-    local duration = config and config.duration or DEFAULT_DURATION
-    local easingFn = getEasing(config and config.easing or DEFAULT_EASING)
+    local duration = config and config.duration or Defaults.DURATION
+    local easingFn = getEasing(config and config.easing or Defaults.EASING)
     local elapsed = -delay
 
     local function reset()
@@ -459,7 +467,7 @@ function Entrance.zoomIn(element: GuiObject, config: EntranceConfig?): EffectCon
         uiScale.Scale = 1
     end
 
-    local animation = AnimationFactory.create(
+    local animation = AnimationFactory._create(
         function(dt: number): boolean
             elapsed = elapsed + dt
             if elapsed < 0 then return false end
@@ -480,8 +488,8 @@ function Entrance.zoomIn(element: GuiObject, config: EntranceConfig?): EffectCon
         reset
     )
 
-    AnimationFactory.start(animation)
-    return AnimationFactory.createController(animation, reset)
+    AnimationFactory._start(animation)
+    return AnimationFactory._createController(animation, reset)
 end
 
 function Entrance.dropIn(element: GuiObject, config: EntranceConfig?): EffectController
@@ -536,7 +544,7 @@ function Entrance.dropIn(element: GuiObject, config: EntranceConfig?): EffectCon
         element.Position = originalPosition
     end
 
-    local animation = AnimationFactory.create(
+    local animation = AnimationFactory._create(
         function(dt: number): boolean
             elapsed = elapsed + dt
             if elapsed < 0 then return false end
@@ -555,8 +563,8 @@ function Entrance.dropIn(element: GuiObject, config: EntranceConfig?): EffectCon
         reset
     )
 
-    AnimationFactory.start(animation)
-    return AnimationFactory.createController(animation, reset)
+    AnimationFactory._start(animation)
+    return AnimationFactory._createController(animation, reset)
 end
 
-return Entrance
+return table.freeze(Entrance)
