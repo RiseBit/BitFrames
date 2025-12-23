@@ -8,3 +8,7 @@
 # Allow Folder Traversal
 !src/
 !src/shared/
+
+# Allow BitFolder Content
+!src/shared/BitFolder/
+!src/shared/BitFolder/**
