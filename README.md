@@ -81,3 +81,5 @@ You can switch between engines in the configuration:
 
 - **Easing**: Standard TweenService-like styles (Quad, Cubic, Elastic, etc.)
 - **Spring**: Physics-based animations (damping, stiffness, mass)
+
+- Spring Repo: https://github.com/Fraktality/spr
