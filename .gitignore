@@ -7,5 +7,5 @@
 /src/client
 /src/server
 
-*.json
-*.toml
+*json
+*toml
