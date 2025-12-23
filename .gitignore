@@ -12,3 +12,7 @@
 # Allow BitFolder Content
 !src/shared/BitFolder/
 !src/shared/BitFolder/**
+
+# Allow Wally files
+!wally.toml
+!wally.lock
