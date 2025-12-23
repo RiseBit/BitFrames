@@ -1,10 +1,10 @@
-# Project place file
-/BitFrames.rbxlx
+# Ignore Everything
+*
 
-# Roblox Studio lock files
-/*.rbxlx.lock
-/*.rbxl.lock
-/src/client
-/src/server
+# Allow System Files
+!.gitignore
+!README.md
 
-/default.project.json
+# Allow Folder Traversal
+!src/
+!src/shared/
