@@ -4,7 +4,7 @@ A powerful, fluent, and modular UI animation library for Roblox. Create stunning
 
 **BitFrames** is designed to be a better replacement for `TweenService`, offering two different tweening engines (Spring and Easing) and a suite of pre-made, optimized animations.
 
-**FULL-DOCUMENTATION**: https://bitframedocs-d2s277rq3-risebit-1871s-projects.vercel.app/
+**FULL-DOCUMENTATION**: https://bitframedocs.vercel.app/
 
 ## Features
 
