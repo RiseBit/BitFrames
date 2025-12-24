@@ -1,1 +1,3 @@
 *.toml
+default.project.json
+.luarc

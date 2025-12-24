@@ -7,9 +7,11 @@ A powerful, fluent, and modular UI animation library for Roblox. Create stunning
 ## Features
 
 - **Fluent API**: Chainable methods for clean and readable code.
+- **Batch Tweening**: You can tween multiple GuiObject at once.
 - **Dual Tween**: Support for both physics-based `Spring` animations and standard `Easing` styles.
 - **Pre-made Effects**: Includes a variety of built-in effects like Entrance, Exit, Attention, Loop, and Text animations.
 - **Optimized**: Designed for performance with efficient memory management.
+- **Full-Control with UI**: You got Pause, Resume, Stop, Oncompleted callback, Oninterrupted callback, and more.
 - **Type Safe**: Full Luau type support for better autocomplete and strict typing.
 
 ## Installation
@@ -20,8 +22,12 @@ Append the following to your `wally.toml`:
 
 ```toml
 [dependencies]
-BitFrames = "risebit/bitframe@0.1.4"
+BitFrames = "risebit/bitframe@0.1.7"
 ```
+
+### Github ( Recommended )
+
+https://github.com/RiseBit/BitFrames
 
 ## Usage
 
@@ -47,6 +53,7 @@ animator
     :fadeInUp()
     :wait(1)
     :pulse({ infinite = true })
+    :play()
 ```
 
 ### Text Effects
@@ -77,7 +84,7 @@ textAnimator:typewriter("Hello, World!", {
 
 ## Tween Type
 
-You can switch between engines in the configuration:
+You can switch between tweening in the configuration:
 
 - **Easing**: Standard TweenService-like styles (Quad, Cubic, Elastic, etc.)
-- **Spring**: Physics-based animations (damping, stiffness, mass)
+- **Spring**: Physics-based animations (damping, stiffness, mass) (Credit to Fractality for the Spring Module)

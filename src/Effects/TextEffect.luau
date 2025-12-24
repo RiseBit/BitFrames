@@ -28,6 +28,7 @@ type RollValueConfig = Types.RollValueConfig
 type ColorCycleConfig = Types.ColorCycleConfig
 type ColorPulseConfig = Types.ColorPulseConfig
 type GlitchConfig = Types.GlitchConfig
+type TransitionConfig = Types.TransitionConfig
 type EffectController = Types.EffectController
 
 
@@ -301,7 +302,7 @@ function TextEffect.glitch(element: TextLabel | TextButton | TextBox, config: Gl
     return AnimationFactory._createController(animation, reset)
 end
 
-function TextEffect.fadeColor(element: TextLabel | TextButton | TextBox, toColor: Color3, config: Types.TransitionConfig?): EffectController
+function TextEffect.fadeColor(element: TextLabel | TextButton | TextBox, toColor: Color3, config: TransitionConfig?): EffectController
     assertArg(element, "element", "Instance")
 
     if not isTextElement(element) then
@@ -346,10 +347,7 @@ function TextEffect.rollValue(element: TextLabel | TextButton | TextBox, targetV
     local textElement = element :: TextLabel
     local duration = math.max(config and config.duration or 0.5, 0.001)
     local easingName = config and config.easing or "OutQuad"
-    local prefix = config and config.prefix or ""
-    local suffix = config and config.suffix or ""
-    local decimals = config and config.decimals or 0
-    local useSeparator = config and config.separator or false
+    local customFormat = config and config.format
     local onComplete = config and config.onComplete
 
     local currentText = textElement.Text:gsub("[^%d%.%-]", "")
@@ -359,24 +357,10 @@ function TextEffect.rollValue(element: TextLabel | TextButton | TextBox, targetV
     local easingFn = Helpers._getEasing(easingName)
 
     local function formatNumber(value: number): string
-        local formatted: string
-        if decimals > 0 then
-            formatted = string.format("%%.%df", decimals):format(value)
-        else
-            formatted = tostring(math.floor(value + 0.5))
+        if customFormat then
+            return customFormat(value)
         end
-
-        if useSeparator then
-            local k
-            local intPart, decPart = formatted:match("([^.]+)(%.?.*)")
-            while true do
-                intPart, k = intPart:gsub("^(-?%d+)(%d%d%d)", "%1,%2")
-                if k == 0 then break end
-            end
-            formatted = intPart .. (decPart or "")
-        end
-
-        return prefix .. formatted .. suffix
+        return tostring(math.floor(value + 0.5))
     end
 
     local function reset()

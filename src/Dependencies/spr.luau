@@ -681,7 +681,7 @@ end)
 -- API
 local spr = {}
 do
-	local function assertType(argNum: number, fnName: string, expectedType: string, value: unknown)
+	local function assertType(argNum: number, fnName: string, expectedType: string, value: any)
 		if not expectedType:find(typeof(value)) then
 			error(`bad argument #{argNum} to {fnName} ({expectedType} expected, got {typeof(value)})`, 3)
 		end

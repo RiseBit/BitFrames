@@ -1,0 +1,9 @@
+{
+    "languageMode": "strict",
+    "aliases": {
+        "Core": "./Core",
+        "Effects": "./Effects",
+        "Utils": "./Utils",
+        "Dependencies": "./Dependencies"
+    }
+}

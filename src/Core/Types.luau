@@ -85,10 +85,7 @@ export type ScrambleConfig = {
 export type RollValueConfig = {
     duration: number?,
     easing: string?,
-    prefix: string?,
-    suffix: string?,
-    decimals: number?,
-    separator: boolean?,
+    format: ((value: number) -> string)?,
     onComplete: (() -> ())?,
 }
 
@@ -141,8 +138,11 @@ export type RippleConfig = {
 }
 
 export type PressConfig = {
-    scale: number?,
-    duration: number?,
+	duration: number?,
+	color: Color3?,
+	transparency: number?,
+	size: number?,
+	onComplete: (() -> ())?,
 }
 
 export type HighlightConfig = {
@@ -158,4 +158,3 @@ export type EasingFunction = (t: number) -> number
 export type SlideDirection = "left" | "right" | "up" | "down"
 
 return {}
-
