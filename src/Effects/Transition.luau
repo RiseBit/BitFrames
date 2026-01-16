@@ -121,7 +121,9 @@ function Transition.crossfade(fromElement: GuiObject, toElement: GuiObject, conf
             return false
         end,
         onComplete,
-        nil
+        nil,
+        "crossfade",
+        toElement
     )
 
     AnimationFactory._start(animation)
@@ -214,7 +216,9 @@ function Transition.slideReplace(fromElement: GuiObject, toElement: GuiObject, d
             return false
         end,
         onComplete,
-        nil
+        nil,
+        "slideReplace",
+        toElement
     )
 
     AnimationFactory._start(animation)

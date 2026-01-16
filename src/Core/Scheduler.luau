@@ -25,6 +25,8 @@ local GENERATE_ID_CHARS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0
 --[[
     =========  VARIABLES  =========
 ]]
+local guiObjectState = {} -- [guiObject] = { [animationName] = Animation }
+
 local activeAnimations: { [string]: Animation } = {}
 local animationCount = 0
 local random = Random.new()
@@ -82,6 +84,23 @@ function Scheduler._add(animation: Animation)
     assertArg(animation, "animation", "table")
     if not animation.id then
         error("Animation must have an id", 2)
+    end
+    
+    
+    local target = animation.targetObject
+    local animType = animation.animationType
+    if target and animType then
+        if guiObjectState[target] and guiObjectState[target][animType] then
+            local oldAnimation = guiObjectState[target][animType]
+            if oldAnimation and oldAnimation.id ~= animation.id then
+                Scheduler._stop(oldAnimation)
+            end
+        end
+        
+        if not guiObjectState[target] then
+            guiObjectState[target] = {}
+        end
+        guiObjectState[target][animType] = animation
     end
     
     activeAnimations[animation.id] = animation

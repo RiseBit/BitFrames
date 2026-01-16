@@ -67,6 +67,7 @@ function TextEffect.typewriter(element: TextLabel | TextButton | TextBox, text: 
     local totalChars = #text
     local showCursor = true
     local cursorTimer = 0
+    local lastCursorState = true
 
     textElement.Text = ""
 
@@ -84,14 +85,53 @@ function TextEffect.typewriter(element: TextLabel | TextButton | TextBox, text: 
                 showCursor = not showCursor
             end
 
-            local targetIndex = math.floor(elapsed / speed)
-            if targetIndex > charIndex and charIndex < totalChars then
+	        local targetIndex = math.floor(elapsed / speed)
+            local charAdvanced = targetIndex > charIndex and charIndex < totalChars
+            local cursorChanged = showCursor ~= lastCursorState
+
+            if charAdvanced then
                 charIndex = math.min(targetIndex, totalChars)
+                -- Update text immediately when a character advances
                 local displayText = string.sub(text, 1, charIndex)
-                if charIndex < totalChars then
+                if cursor ~= "" and charIndex < totalChars then
                     displayText = displayText .. (showCursor and cursor or "")
                 end
                 textElement.Text = displayText
+                
+                -- Play Typewriter SFX if provided in config
+                local soundSource = config and config.sound
+                if soundSource then
+                    local soundToPlay: Instance? = nil
+                    
+                    if soundSource:IsA("Folder") then
+                         local sounds = soundSource:GetChildren()
+                         if #sounds > 0 then
+                            soundToPlay = sounds[math.random(1, #sounds)]
+                         end
+                    elseif soundSource:IsA("Sound") then
+                        soundToPlay = soundSource
+                    end
+                    
+                    if soundToPlay and soundToPlay:IsA("Sound") then
+                        local sfx = soundToPlay:Clone()
+                        sfx.Name = "TypewriterSFX"
+                        sfx.Parent = game:GetService("SoundService")
+                        sfx:Play()
+                        sfx:Play()
+                        task.delay(sfx.TimeLength + 1, function()
+                            if sfx then sfx:Destroy() end
+                        end)
+                    end
+                end
+
+            elseif cursorChanged and charIndex < totalChars then
+                -- Only update for cursor blink if still typing
+                local displayText = string.sub(text, 1, charIndex)
+                if cursor ~= "" then
+                    displayText = displayText .. (showCursor and cursor or "")
+                end
+                textElement.Text = displayText
+                lastCursorState = showCursor
             end
 
             if charIndex >= totalChars then
@@ -101,7 +141,9 @@ function TextEffect.typewriter(element: TextLabel | TextButton | TextBox, text: 
             return false
         end,
         onComplete,
-        reset
+        reset,
+        "typewriter",
+        textElement
     )
 
     AnimationFactory._start(animation)
@@ -165,7 +207,9 @@ function TextEffect.scramble(element: TextLabel | TextButton | TextBox, text: st
             return false
         end,
         onComplete,
-        reset
+        reset,
+        "scramble",
+        textElement
     )
 
     AnimationFactory._start(animation)
@@ -198,7 +242,9 @@ function TextEffect.colorCycle(element: TextLabel | TextButton | TextBox, config
             return false
         end,
         nil,
-        reset
+        reset,
+        "colorCycle",
+        textElement
     )
 
     AnimationFactory._start(animation)
@@ -232,7 +278,9 @@ function TextEffect.colorPulse(element: TextLabel | TextButton | TextBox, config
             return false
         end,
         nil,
-        reset
+        reset,
+        "colorPulse",
+        textElement
     )
 
     AnimationFactory._start(animation)
@@ -295,7 +343,9 @@ function TextEffect.glitch(element: TextLabel | TextButton | TextBox, config: Gl
             return false
         end,
         nil,
-        reset
+        reset,
+        "glitch",
+        textElement
     )
 
     AnimationFactory._start(animation)
@@ -329,7 +379,9 @@ function TextEffect.fadeColor(element: TextLabel | TextButton | TextBox, toColor
             return false
         end,
         onComplete,
-        nil
+        nil,
+        "fadeColor",
+        textElement
     )
 
     AnimationFactory._start(animation)
@@ -351,7 +403,7 @@ function TextEffect.rollValue(element: TextLabel | TextButton | TextBox, targetV
     local onComplete = config and config.onComplete
 
     local currentText = textElement.Text:gsub("[^%d%.%-]", "")
-    local startValue = tonumber(currentText) or 0
+    local startValue = config and config.startValue or tonumber(currentText) or 0
     local elapsed = 0
 
     local easingFn = Helpers._getEasing(easingName)
@@ -387,7 +439,9 @@ function TextEffect.rollValue(element: TextLabel | TextButton | TextBox, targetV
             return false
         end,
         onComplete,
-        reset
+        reset,
+        "rollValue",
+        textElement
     )
 
     AnimationFactory._start(animation)

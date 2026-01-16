@@ -94,7 +94,9 @@ function Exit.fadeOut(element: GuiObject, config: ExitConfig?): EffectController
             return false
         end,
         onComplete,
-        nil
+        nil,
+        "fadeOut",
+        element
     )
 
     AnimationFactory._start(animation)
@@ -164,7 +166,9 @@ function Exit.fadeOutUp(element: GuiObject, config: ExitConfig?): EffectControll
             return false
         end,
         onComplete,
-        reset
+        reset,
+        "fadeOutUp",
+        element
     )
 
     AnimationFactory._start(animation)
@@ -234,7 +238,9 @@ function Exit.fadeOutDown(element: GuiObject, config: ExitConfig?): EffectContro
             return false
         end,
         onComplete,
-        reset
+        reset,
+        "fadeOutDown",
+        element
     )
 
     AnimationFactory._start(animation)
@@ -305,7 +311,9 @@ function Exit.scaleOut(element: GuiObject, config: ExitConfig?): EffectControlle
             return false
         end,
         onComplete,
-        reset
+        reset,
+        "scaleOut",
+        element
     )
 
     AnimationFactory._start(animation)
@@ -376,7 +384,9 @@ function Exit.shrinkOut(element: GuiObject, config: ExitConfig?): EffectControll
             return false
         end,
         onComplete,
-        reset
+        reset,
+        "shrinkOut",
+        element
     )
 
     AnimationFactory._start(animation)
@@ -447,7 +457,9 @@ function Exit.zoomOut(element: GuiObject, config: ExitConfig?): EffectController
             return false
         end,
         onComplete,
-        reset
+        reset,
+        "zoomOut",
+        element
     )
 
     AnimationFactory._start(animation)

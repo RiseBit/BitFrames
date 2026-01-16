@@ -17,6 +17,15 @@ local Easing = require(script.Parent.Easing)
 local Helpers = {}
 
 function Helpers._setTransparency(element: GuiObject, alpha: number)
+    if not element then
+        warn("[BitFrames] Element is nil")
+        return
+    end
+    if not alpha then
+        warn("[BitFrames] Alpha is nil")
+        return
+    end
+
     element.BackgroundTransparency = alpha
     if element:IsA("TextLabel") or element:IsA("TextButton") or element:IsA("TextBox") then
         (element :: TextLabel).TextTransparency = alpha

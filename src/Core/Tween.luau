@@ -103,7 +103,7 @@ function Tween.tween(instance: GuiObject, properties: TweenableProperties, confi
 			local eased = easingFn(t)
 
 			for prop, targetValue in properties do
-				startValues[prop] = lerpValue(startValues[prop], targetValue, eased)
+				(instance :: any)[prop] = lerpValue(startValues[prop], targetValue, eased)
 			end
 
 			if t >= 1 then
@@ -113,7 +113,9 @@ function Tween.tween(instance: GuiObject, properties: TweenableProperties, confi
 			return false
 		end,
 		onComplete,
-		reset
+		reset,
+		"tween",
+		instance
 	)
 
 	AnimationFactory._start(animation)

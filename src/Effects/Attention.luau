@@ -6,6 +6,9 @@
     Pre-made attention animations using centralized Scheduler.
 ]]
 
+local TweenService = game:GetService("TweenService")
+local Players = game:GetService("Players")
+
 --[[
     =========  MODULES  =========
 ]]
@@ -192,6 +195,125 @@ function Attention.jello(element: GuiObject, config: AttentionConfig?): EffectCo
         end,
         config, 0.5, 1, 0.1
     )
+end
+
+function Attention.confetti(element: GuiObject?, config: any): EffectController
+	local cfg = config or {}
+	local count = cfg.count or 50
+	local duration = cfg.duration or 2
+	local colors = cfg.colors or {
+		Color3.fromRGB(255, 107, 107), -- Red
+		Color3.fromRGB(255, 193, 7),   -- Yellow
+		Color3.fromRGB(76, 175, 80),   -- Green
+		Color3.fromRGB(33, 150, 243),  -- Blue
+		Color3.fromRGB(156, 39, 176),  -- Purple
+		Color3.fromRGB(255, 152, 0),   -- Orange
+		Color3.fromRGB(0, 188, 212),   -- Cyan
+		Color3.fromRGB(233, 30, 99),   -- Pink
+	}
+	local screenWide = if cfg.screenWide ~= nil then cfg.screenWide else true
+	
+	local container: GuiObject
+	local shouldCleanupContainer = false
+	
+	if screenWide then
+		local playerGui = Players.LocalPlayer:FindFirstChild("PlayerGui")
+		if not playerGui then
+			return { stop = function() end }
+		end
+		
+		local screenGui = Instance.new("ScreenGui")
+		screenGui.Name = "ConfettiEffect"
+		screenGui.DisplayOrder = 100
+		screenGui.IgnoreGuiInset = true
+		screenGui.Parent = playerGui
+		
+		container = Instance.new("Frame")
+		container.Name = "ConfettiContainer"
+		container.Size = UDim2.fromScale(1, 1)
+		container.BackgroundTransparency = 1
+		container.Parent = screenGui
+		shouldCleanupContainer = true
+	else
+		-- If not screenWide, require element or parent
+		local parent = cfg.parent or element
+		if not parent then
+			warn("[BitFrames] Attention.confetti: Element or Parent required for non-screenwide effect")
+			return { stop = function() end }
+		end
+		
+		container = Instance.new("Frame")
+		container.Name = "ConfettiContainer"
+		container.Size = UDim2.fromScale(1, 1)
+		container.BackgroundTransparency = 1
+		container.Parent = parent
+		shouldCleanupContainer = true
+	end
+	
+	local confettiPieces: { Frame } = {}
+	local stopped = false
+	
+	for i = 1, count do
+		local piece = Instance.new("Frame")
+		piece.Name = "Confetti_" .. i
+		piece.Size = UDim2.fromOffset(math.random(8, 16), math.random(4, 8))
+		piece.BackgroundColor3 = colors[math.random(1, #colors)]
+		piece.BorderSizePixel = 0
+		piece.Rotation = math.random(0, 360)
+		piece.AnchorPoint = Vector2.new(0.5, 0.5)
+		
+		local startX = math.random(0, 100) / 100
+		piece.Position = UDim2.fromScale(startX, -0.1)
+		
+		local corner = Instance.new("UICorner")
+		corner.CornerRadius = UDim.new(0, 2)
+		corner.Parent = piece
+		
+		piece.Parent = container
+		table.insert(confettiPieces, piece)
+		
+		local endX = startX + (math.random(-20, 20) / 100)
+		local fallDuration = duration * (0.8 + math.random() * 0.4)
+		local rotationAmount = math.random(-720, 720)
+		
+		local tweenInfo = TweenInfo.new(fallDuration, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
+		local tween = TweenService:Create(piece, tweenInfo, {
+			Position = UDim2.fromScale(endX, 1.2),
+			Rotation = piece.Rotation + rotationAmount,
+			BackgroundTransparency = 0.5,
+		})
+		
+		task.delay(math.random() * 0.3, function()
+			if not stopped then
+				tween:Play()
+			end
+		end)
+	end
+	
+	task.delay(duration + 0.5, function()
+		if shouldCleanupContainer and container and container.Parent then
+			local screenGui = container.Parent
+			container:Destroy()
+			if screenGui:IsA("ScreenGui") and screenGui.Name == "ConfettiEffect" then
+				screenGui:Destroy()
+			end
+		end
+	end)
+	
+	return {
+		stop = function()
+			stopped = true
+			if shouldCleanupContainer and container and container.Parent then
+				local screenGui = container.Parent
+				container:Destroy()
+				if screenGui:IsA("ScreenGui") and screenGui.Name == "ConfettiEffect" then
+					screenGui:Destroy()
+				end
+			end
+		end,
+		pause = function() end, -- Interface conformity
+		resume = function() end, -- Interface conformity
+	}
 end
 
 return table.freeze(Attention)

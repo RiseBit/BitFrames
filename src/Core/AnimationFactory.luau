@@ -28,8 +28,11 @@ local AnimationFactory = {}
 function AnimationFactory._create(
     stepFn: (dt: number) -> boolean,
     onComplete: (() -> ())?,
-    onInterrupt: (() -> ())?
+    onInterrupt: (() -> ())?,
+    animationType: string,
+    targetObject: Instance?
 ): Animation
+
     local _stepFn: ((dt: number) -> boolean)? = stepFn
     local _onComplete: (() -> ())? = onComplete
     local _onInterrupt: (() -> ())? = onInterrupt
@@ -40,6 +43,8 @@ function AnimationFactory._create(
         elapsed = 0,
         delayRemaining = 0,
         progress = 0,
+        animationType = animationType,
+        targetObject = targetObject,
     }
 
     function animation:step(dt: number): boolean
@@ -104,4 +109,4 @@ function AnimationFactory._start(animation: Animation)
     Scheduler._add(animation)
 end
 
-return table.freeze(AnimationFactory)
+return AnimationFactory

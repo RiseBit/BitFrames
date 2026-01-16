@@ -18,6 +18,8 @@ export type Animation = {
     elapsed: number,
     delayRemaining: number,
     progress: number,
+    animationType: string,
+    targetObject: Instance?,
 
     step: (self: Animation, dt: number) -> boolean,
     _fireStart: (self: Animation) -> (),
@@ -74,6 +76,7 @@ export type TypewriterConfig = {
     speed: number?,
     cursor: string?,
     onComplete: (() -> ())?,
+    sound: (Sound | Folder)?, 
 }
 
 export type ScrambleConfig = {
@@ -85,6 +88,7 @@ export type ScrambleConfig = {
 export type RollValueConfig = {
     duration: number?,
     easing: string?,
+    startValue: number?,
     format: ((value: number) -> string)?,
     onComplete: (() -> ())?,
 }

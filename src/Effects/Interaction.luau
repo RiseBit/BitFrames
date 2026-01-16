@@ -143,7 +143,9 @@ function Interaction.ripple(element: GuiObject, position: Vector2?, config: Ripp
 			return false
 		end,
 		onComplete,
-		cleanup
+		cleanup,
+		"ripple",
+		element
 	)
 
 	AnimationFactory._start(animation)
@@ -233,7 +235,9 @@ function Interaction.press(element: GuiObject, position: Vector2?, config: Press
 			return false
 		end,
 		onComplete,
-		cleanup
+		cleanup,
+		"press",
+		element
 	)
 
 	AnimationFactory._start(animation)
@@ -284,7 +288,9 @@ function Interaction.highlight(element: GuiObject, config: HighlightConfig?): Ef
 			return false
 		end,
 		nil,
-		cleanup
+		cleanup,
+		"highlight",
+		element
 	)
 
 	AnimationFactory._start(animation)

@@ -36,7 +36,8 @@ local function createLoopEffect(
     stepFn: LoopStepFn,
     config: LoopConfig?,
     defaultSpeed: number?,
-    defaultIntensity: number?
+    defaultIntensity: number?,
+    animationType: string?
 ): EffectController
     local speed = config and config.speed or defaultSpeed or 1
     local intensity = config and config.intensity or defaultIntensity or 1
@@ -59,7 +60,9 @@ local function createLoopEffect(
             return false
         end,
         nil,
-        reset
+        reset,
+        animationType or "loop",
+        element
     )
 
     AnimationFactory._start(animation)
@@ -78,7 +81,7 @@ function Loop.spin(element: GuiObject, config: LoopConfig?): EffectController
         function(_el) return 0 end,
         function(el, _, value) el.Rotation = value end,
         function(elapsed, speed, _) return (elapsed * speed * 360) % 360 end,
-        config, 1, 1
+        config, 1, 1, "spin"
     )
 end
 
@@ -89,7 +92,7 @@ function Loop.spinReverse(element: GuiObject, config: LoopConfig?): EffectContro
         function(_el) return 0 end,
         function(el, _, value) el.Rotation = value end,
         function(elapsed, speed, _) return 360 - (elapsed * speed * 360) % 360 end,
-        config, 1, 1
+        config, 1, 1, "spinReverse"
     )
 end
 
@@ -105,7 +108,7 @@ function Loop.float(element: GuiObject, config: LoopConfig?): EffectController
         function(elapsed, speed, intensity)
             return math.sin(elapsed * speed * math.pi * 2) * intensity
         end,
-        config, 0.5, 5
+        config, 0.5, 5, "float"
     )
 end
 
@@ -120,7 +123,7 @@ function Loop.breathe(element: GuiObject, config: LoopConfig?): EffectController
         function(elapsed, speed, intensity)
             return math.sin(elapsed * speed * math.pi * 2) * intensity
         end,
-        config, 0.5, 0.05
+        config, 0.5, 0.05, "breathe"
     )
 end
 
@@ -135,7 +138,7 @@ function Loop.glow(element: GuiObject, config: LoopConfig?): EffectController
         function(elapsed, speed, intensity)
             return (math.sin(elapsed * speed * math.pi * 2) + 1) / 2 * intensity
         end,
-        config, 0.67, 0.3
+        config, 0.67, 0.3, "glow"
     )
 end
 
@@ -148,7 +151,7 @@ function Loop.swing(element: GuiObject, config: LoopConfig?): EffectController
         function(elapsed, speed, intensity)
             return math.sin(elapsed * speed * math.pi * 2) * intensity
         end,
-        config, 1, 15
+        config, 1, 15, "swing"
     )
 end
 
@@ -163,8 +166,56 @@ function Loop.sway(element: GuiObject, config: LoopConfig?): EffectController
         function(elapsed, speed, intensity)
             return math.sin(elapsed * speed * math.pi * 2) * intensity
         end,
-        config, 0.5, 10
+        config, 0.5, 10, "sway"
     )
 end
 
+function Loop.rainbowGradient(element: GuiObject, config: LoopConfig?): EffectController
+    assertArg(element, "element", "Instance")
+    
+    local gradient = element:FindFirstChildOfClass("UIGradient")
+    if not gradient then
+        gradient = Instance.new("UIGradient")
+        gradient.Color = ColorSequence.new{
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 100, 100)),
+            ColorSequenceKeypoint.new(0.17, Color3.fromRGB(255, 200, 100)),
+            ColorSequenceKeypoint.new(0.33, Color3.fromRGB(255, 255, 100)),
+            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(100, 255, 100)),
+            ColorSequenceKeypoint.new(0.67, Color3.fromRGB(100, 200, 255)),
+            ColorSequenceKeypoint.new(0.83, Color3.fromRGB(180, 100, 255)),
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 100, 200)),
+        }
+        gradient.Parent = element
+    end
+    
+    local speed = config and config.speed or 1
+    local intensity = config and config.intensity or 45
+    local elapsed = 0
+    
+    local function reset()
+        if gradient and gradient.Parent then
+            gradient.Rotation = 0
+        end
+    end
+    
+    local animation = AnimationFactory._create(
+        function(dt: number): boolean
+            if not isValidElement(element) or not gradient or not gradient.Parent then return true end
+            
+            elapsed = elapsed + dt
+            local swing = math.sin(elapsed * speed * math.pi * 2) * intensity
+            gradient.Rotation = swing
+            return false
+        end,
+        nil,
+        reset,
+        "rainbowGradient",
+        element
+    )
+    
+    AnimationFactory._start(animation)
+    return AnimationFactory._createController(animation, reset)
+end
+
 return table.freeze(Loop)
+

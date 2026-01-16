@@ -108,7 +108,9 @@ function Entrance.fadeIn(element: GuiObject, config: EntranceConfig?): EffectCon
             return false
         end,
         onComplete,
-        reset
+        reset,
+        "fadeIn",
+        element
     )
 
     AnimationFactory._start(animation)
@@ -185,7 +187,9 @@ function Entrance.fadeInUp(element: GuiObject, config: EntranceConfig?): EffectC
             return false
         end,
         onComplete,
-        reset
+        reset,
+        "fadeInUp",
+        element
     )
 
     AnimationFactory._start(animation)
@@ -262,7 +266,9 @@ function Entrance.fadeInDown(element: GuiObject, config: EntranceConfig?): Effec
             return false
         end,
         onComplete,
-        reset
+        reset,
+        "fadeInDown",
+        element
     )
 
     AnimationFactory._start(animation)
@@ -337,7 +343,9 @@ function Entrance.scaleIn(element: GuiObject, config: EntranceConfig?): EffectCo
             return false
         end,
         onComplete,
-        reset
+        reset,
+        "scaleIn",
+        element
     )
 
     AnimationFactory._start(animation)
@@ -410,7 +418,9 @@ function Entrance.scaleInBounce(element: GuiObject, config: EntranceConfig?): Ef
             return false
         end,
         onComplete,
-        reset
+        reset,
+        "scaleInBounce",
+        element
     )
 
     AnimationFactory._start(animation)
@@ -485,7 +495,9 @@ function Entrance.zoomIn(element: GuiObject, config: EntranceConfig?): EffectCon
             return false
         end,
         onComplete,
-        reset
+        reset,
+        "zoomIn",
+        element
     )
 
     AnimationFactory._start(animation)
@@ -560,7 +572,9 @@ function Entrance.dropIn(element: GuiObject, config: EntranceConfig?): EffectCon
             return false
         end,
         onComplete,
-        reset
+        reset,
+        "dropIn",
+        element
     )
 
     AnimationFactory._start(animation)
