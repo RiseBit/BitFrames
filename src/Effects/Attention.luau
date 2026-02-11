@@ -21,6 +21,7 @@ local Types = require(script.Parent.Parent.Core.Types)
 
 local assertArg = Check._assertArg
 local isValidElement = Helpers._isValidElement
+local getTransparencyProps = Helpers._getTransparencyProps
 local AttentionDefaults = Config.AttentionDefaults
 
 --[[
@@ -58,6 +59,9 @@ local function createAttentionEffect(
     local function reset()
         if isValidElement(element) then
             setProperty(element, original, 0)
+            Transform._restoreState(element)
+            Transform._removeUIScale(element)
+            Transform._clearState(element)
         end
     end
 
@@ -70,7 +74,8 @@ local function createAttentionEffect(
 
             if t >= 1 then
                 currentLoop = currentLoop + 1
-                elapsed = 0
+                elapsed = elapsed - duration
+                t = elapsed / duration
                 if loops > 0 and currentLoop >= loops then
                     reset()
                     return true
@@ -82,7 +87,9 @@ local function createAttentionEffect(
             return false
         end,
         onComplete,
-        reset
+        reset,
+        "attention",
+        element
     )
 
     AnimationFactory._start(animation)
@@ -96,8 +103,10 @@ local Attention = {}
 
 function Attention.pulse(element: GuiObject, config: AttentionConfig?): EffectController
     assertArg(element, "element", "Instance")
+    Transform._prepareAnimation(element, true)
     local uiScale = Transform._getUIScale(element)
-    local originalScale = uiScale.Scale
+    local originalScale = uiScale.Scale 
+    
     return createAttentionEffect(
         element,
         function(_) return originalScale end,
@@ -109,9 +118,12 @@ end
 
 function Attention.shake(element: GuiObject, config: AttentionConfig?): EffectController
     assertArg(element, "element", "Instance")
+    Transform._prepareAnimation(element)
+    local originalRotation = Transform._getOriginal(element).Rotation
+    
     return createAttentionEffect(
         element,
-        function(el) return el.Rotation end,
+        function(_) return originalRotation end,
         function(el, orig, delta) el.Rotation = orig + delta end,
         function(_, intensity) return intensity * (math.random() * 2 - 1) end,
         config, 0.1, 3, 5
@@ -120,10 +132,12 @@ end
 
 function Attention.bounce(element: GuiObject, config: AttentionConfig?): EffectController
     assertArg(element, "element", "Instance")
-    local originalPosition = element.Position
+    Transform._prepareAnimation(element)
+    local originalPosition = Transform._getOriginal(element).Position
+    
     return createAttentionEffect(
         element,
-        function(el) return el.Position end,
+        function(_) return originalPosition end,
         function(el, orig, offsetY)
             el.Position = UDim2.new(orig.X.Scale, orig.X.Offset, orig.Y.Scale, orig.Y.Offset + offsetY)
         end,
@@ -134,9 +148,12 @@ end
 
 function Attention.wiggle(element: GuiObject, config: AttentionConfig?): EffectController
     assertArg(element, "element", "Instance")
+    Transform._prepareAnimation(element)
+    local originalRotation = Transform._getOriginal(element).Rotation
+    
     return createAttentionEffect(
         element,
-        function(el) return el.Rotation end,
+        function(_) return originalRotation end,
         function(el, orig, delta) el.Rotation = orig + delta end,
         function(t, intensity) return intensity * math.sin(t * math.pi * 4) end,
         config, 0.15, 2, 10
@@ -144,22 +161,69 @@ function Attention.wiggle(element: GuiObject, config: AttentionConfig?): EffectC
 end
 
 function Attention.flash(element: GuiObject, config: AttentionConfig?): EffectController
-    assertArg(element, "element", "Instance")
-    return createAttentionEffect(
-        element,
-        function(el) return el.BackgroundTransparency end,
-        function(el, orig, delta)
-            el.BackgroundTransparency = math.clamp(orig + delta, 0, 1)
-        end,
-        function(t, intensity) return intensity * math.abs(math.sin(t * math.pi)) end,
-        config, 0.2, 2, 0.5
-    )
+	assertArg(element, "element", "Instance")
+	Transform._prepareAnimation(element)
+	local originals = Transform._getOriginal(element)
+	local props = getTransparencyProps(element, config)
+
+	local duration = math.max(config and config.duration or 0.2, 0.001)
+	local loops = config and config.loops or 2
+	local intensity = config and config.intensity or 0.5
+	local onComplete = config and config.onComplete
+
+	local elapsed = 0
+	local currentLoop = 0
+
+	local function reset()
+		if isValidElement(element) then
+			for _, prop in props do
+				(element :: any)[prop] = originals[prop] or 0
+			end
+			Transform._restoreState(element)
+			Transform._clearState(element)
+		end
+	end
+
+	local animation = AnimationFactory._create(
+		function(dt: number): boolean
+			if not isValidElement(element) then return true end
+
+			elapsed = elapsed + dt
+			local t = elapsed / duration
+
+			if t >= 1 then
+				currentLoop = currentLoop + 1
+				elapsed = elapsed - duration
+				t = elapsed / duration
+				if loops > 0 and currentLoop >= loops then
+					reset()
+					return true
+				end
+			end
+
+			local delta = intensity * math.abs(math.sin(t * math.pi))
+			for _, prop in props do
+				local orig = originals[prop] or 0
+				(element :: any)[prop] = math.clamp(orig + delta, 0, 1)
+			end
+			return false
+		end,
+		onComplete,
+		reset,
+		"attention",
+		element
+	)
+
+	AnimationFactory._start(animation)
+	return AnimationFactory._createController(animation, reset)
 end
 
 function Attention.heartbeat(element: GuiObject, config: AttentionConfig?): EffectController
     assertArg(element, "element", "Instance")
+    Transform._prepareAnimation(element, true)
     local uiScale = Transform._getUIScale(element)
     local originalScale = uiScale.Scale
+    
     return createAttentionEffect(
         element,
         function(_) return originalScale end,
@@ -183,8 +247,10 @@ end
 
 function Attention.jello(element: GuiObject, config: AttentionConfig?): EffectController
     assertArg(element, "element", "Instance")
+    Transform._prepareAnimation(element, true)
     local uiScale = Transform._getUIScale(element)
     local originalScale = uiScale.Scale
+    
     return createAttentionEffect(
         element,
         function(_) return originalScale end,
@@ -219,7 +285,7 @@ function Attention.confetti(element: GuiObject?, config: any): EffectController
 	if screenWide then
 		local playerGui = Players.LocalPlayer:FindFirstChild("PlayerGui")
 		if not playerGui then
-			return { stop = function() end }
+			return { stop = function() end, pause = function() end, resume = function() end }
 		end
 		
 		local screenGui = Instance.new("ScreenGui")
@@ -239,7 +305,7 @@ function Attention.confetti(element: GuiObject?, config: any): EffectController
 		local parent = cfg.parent or element
 		if not parent then
 			warn("[BitFrames] Attention.confetti: Element or Parent required for non-screenwide effect")
-			return { stop = function() end }
+			return { stop = function() end, pause = function() end, resume = function() end }
 		end
 		
 		container = Instance.new("Frame")

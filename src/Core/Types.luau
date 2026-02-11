@@ -15,9 +15,6 @@ export type AnimationState = "idle" | "playing" | "paused" | "completed" | "stop
 export type Animation = {
     id: string,
     state: AnimationState,
-    elapsed: number,
-    delayRemaining: number,
-    progress: number,
     animationType: string,
     targetObject: Instance?,
 
@@ -41,35 +38,43 @@ export type EffectController = {
     =========  EFFECT CONFIG TYPES  =========
 ]]
 export type EntranceConfig = {
-    duration: number?,
-    easing: string?,
-    delay: number?,
-    spring: boolean?,
-    damping: number?,
-    frequency: number?,
-    onComplete: (() -> ())?,
+	duration: number?,
+	easing: string?,
+	delay: number?,
+	spring: boolean?,
+	damping: number?,
+	frequency: number?,
+	onComplete: (() -> ())?,
+	transparencyProperties: {string}?,
+	distance: number?,
+	initialScale: number?,
 }
 
 export type ExitConfig = {
-    duration: number?,
-    easing: string?,
-    delay: number?,
-    spring: boolean?,
-    damping: number?,
-    frequency: number?,
-    onComplete: (() -> ())?,
+	duration: number?,
+	easing: string?,
+	delay: number?,
+	spring: boolean?,
+	damping: number?,
+	frequency: number?,
+	onComplete: (() -> ())?,
+	transparencyProperties: {string}?,
+	distance: number?,
+	targetScale: number?,
 }
 
 export type AttentionConfig = {
-    duration: number?,
-    loops: number?,
-    intensity: number?,
-    onComplete: (() -> ())?,
+	duration: number?,
+	loops: number?,
+	intensity: number?,
+	onComplete: (() -> ())?,
+	transparencyProperties: {string}?,
 }
 
 export type LoopConfig = {
-    speed: number?,
-    intensity: number?,
+	speed: number?,
+	intensity: number?,
+	transparencyProperties: {string}?,
 }
 
 export type TypewriterConfig = {
@@ -111,12 +116,14 @@ export type GlitchConfig = {
 }
 
 export type TransitionConfig = {
-    duration: number?,
-    easing: string?,
-    spring: boolean?,
-    damping: number?,
-    frequency: number?,
-    onComplete: (() -> ())?,
+	duration: number?,
+	easing: string?,
+	spring: boolean?,
+	damping: number?,
+	frequency: number?,
+	onComplete: (() -> ())?,
+	transparencyProperties: {string}?,
+	distance: number?,
 }
 
 export type TweenConfig = {
@@ -153,6 +160,15 @@ export type HighlightConfig = {
     duration: number?,
     color: Color3?,
     transparency: number?,
+}
+
+export type HoverConfig = {
+    scale: number?,
+    duration: number?,
+    easing: string?,
+    spring: boolean?,
+    damping: number?,
+    frequency: number?,
 }
 
 --[[

@@ -335,4 +335,58 @@ function Interaction.bindPress(element: GuiObject, config: PressConfig?): { disc
 	}
 end
 
+function Interaction.hover(element: GuiObject, config: Types.HoverConfig?): EffectController
+	assertArg(element, "element", "Instance")
+
+	local scale = config and config.scale or 1.05
+	local duration = config and config.duration or 0.2
+	local easing = config and config.easing or "OutQuad" -- Using string for built-in tweens
+	
+	-- We use simple TweenService for hover as it's often more performant for simple scale
+    -- and doesn't always need the full Scheduler overhead for persistent event binding
+    -- But since this is BitFrames, we can use our internal Tween or just direct TS.
+    -- Let's use direct TweenService for simplicity in this binding, 
+    -- OR better: use the Entrance/Exit scale logic? No, simplistic is better here.
+    
+    local TweenService = game:GetService("TweenService")
+    local TweenService = game:GetService("TweenService")
+    
+    local connections: { RBXScriptConnection } = {}
+    local currentTween: Tween? = nil
+    
+    local function animate(targetScale: number)
+        if currentTween then currentTween:Cancel() end
+        
+        local uiScale = element:FindFirstChild("_BitFramesHoverScale") :: UIScale
+        if not uiScale then
+             uiScale = Instance.new("UIScale")
+             uiScale.Name = "_BitFramesHoverScale"
+             uiScale.Parent = element
+        end
+        
+        local style = Enum.EasingStyle[easing] or Enum.EasingStyle.Quad
+        local info = TweenInfo.new(duration, style, Enum.EasingDirection.Out)
+        currentTween = TweenService:Create(uiScale, info, { Scale = targetScale })
+        if currentTween then currentTween:Play() end
+    end
+    
+    table.insert(connections, element.MouseEnter:Connect(function()
+        animate(scale)
+    end))
+    
+    table.insert(connections, element.MouseLeave:Connect(function()
+        animate(1)
+    end))
+    
+    return {
+        stop = function()
+            for _, conn in connections do conn:Disconnect() end
+            local uiScale = element:FindFirstChild("_BitFramesHoverScale")
+            if uiScale then uiScale:Destroy() end
+        end,
+        pause = function() end, -- Not applicable
+        resume = function() end, -- Not applicable
+    }
+end
+
 return table.freeze(Interaction)

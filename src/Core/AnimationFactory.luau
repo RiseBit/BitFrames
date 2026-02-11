@@ -40,9 +40,6 @@ function AnimationFactory._create(
     local animation = {
         id = Scheduler._generateId(),
         state = "idle" :: AnimationState,
-        elapsed = 0,
-        delayRemaining = 0,
-        progress = 0,
         animationType = animationType,
         targetObject = targetObject,
     }
@@ -60,12 +57,10 @@ function AnimationFactory._create(
     function animation:_fireComplete()
         if _onComplete then
             local callback = _onComplete
-            task.spawn(function()
-                local success, err = pcall(callback)
-                if not success then
-                    warn("[BitFrames] onComplete callback error:", err)
-                end
-            end)
+            local success, err = pcall(callback)
+            if not success then
+                warn("[BitFrames] onComplete callback error:", err)
+            end
         end
         _stepFn = nil
         _onComplete = nil
@@ -75,12 +70,10 @@ function AnimationFactory._create(
     function animation:_fireInterrupt()
         if _onInterrupt then
             local callback = _onInterrupt
-            task.spawn(function()
-                local success, err = pcall(callback)
-                if not success then
-                    warn("[BitFrames] onInterrupt callback error:", err)
-                end
-            end)
+            local success, err = pcall(callback)
+            if not success then
+                warn("[BitFrames] onInterrupt callback error:", err)
+            end
         end
         _stepFn = nil
         _onComplete = nil

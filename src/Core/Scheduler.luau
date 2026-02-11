@@ -25,7 +25,7 @@ local GENERATE_ID_CHARS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0
 --[[
     =========  VARIABLES  =========
 ]]
-local guiObjectState = {} -- [guiObject] = { [animationName] = Animation }
+local guiObjectState = setmetatable({}, { __mode = "k" }) -- [guiObject] = { [animationName] = Animation }
 
 local activeAnimations: { [string]: Animation } = {}
 local animationCount = 0
@@ -116,6 +116,18 @@ function Scheduler._remove(animation: Animation)
     
     activeAnimations[animation.id] = nil
     animationCount -= 1
+    
+    local target = animation.targetObject
+    local animType = animation.animationType
+    if target and animType and guiObjectState[target] then
+        if guiObjectState[target][animType] == animation then
+             guiObjectState[target][animType] = nil
+        end
+        if next(guiObjectState[target]) == nil then
+             guiObjectState[target] = nil
+        end
+    end
+
     animation:_fireInterrupt()
 end
 
@@ -140,6 +152,18 @@ function Scheduler._stop(animation: Animation)
     animation.state = "stopped"
     activeAnimations[animation.id] = nil
     animationCount -= 1
+    
+    local target = animation.targetObject
+    local animType = animation.animationType
+    if target and animType and guiObjectState[target] then
+        if guiObjectState[target][animType] == animation then
+             guiObjectState[target][animType] = nil
+        end
+        if next(guiObjectState[target]) == nil then
+             guiObjectState[target] = nil
+        end
+    end
+
     animation:_fireInterrupt()
 end
 

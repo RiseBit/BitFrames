@@ -13,11 +13,14 @@ local Config = require(script.Parent.Parent.Config)
 local Check = require(script.Parent.Parent.Utils.Check)
 local AnimationFactory = require(script.Parent.Parent.Core.AnimationFactory)
 local Helpers = require(script.Parent.Parent.Utils.Helpers)
+local Transform = require(script.Parent.Parent.Utils.Transform)
 local Types = require(script.Parent.Parent.Core.Types)
 
 local assertArg = Check._assertArg
 local isValidElement = Helpers._isValidElement
 local TextDefaults = Config.TextDefaults
+local Defaults = Config.Defaults
+local getEasing = Helpers._getEasing
 
 --[[
     =========  TYPES  =========
@@ -30,8 +33,6 @@ type ColorPulseConfig = Types.ColorPulseConfig
 type GlitchConfig = Types.GlitchConfig
 type TransitionConfig = Types.TransitionConfig
 type EffectController = Types.EffectController
-
-
 
 --[[
     =========  HELPER FUNCTIONS  =========
@@ -49,14 +50,14 @@ end
 ]]
 local TextEffect = {}
 
-function TextEffect.typewriter(element: TextLabel | TextButton | TextBox, text: string, config: TypewriterConfig?): EffectController
+function TextEffect.typewriter(element: GuiObject, text: string, config: TypewriterConfig?): EffectController
     assertArg(element, "element", "Instance")
     assertArg(text, "text", "string")
 
     if not isTextElement(element) then
         error("Element must be TextLabel, TextButton, or TextBox", 2)
     end
-
+    
     local textElement = element :: TextLabel
     local speed = config and config.speed or TextDefaults.TYPEWRITER_SPEED
     local cursor = config and config.cursor or TextDefaults.CURSOR
@@ -77,6 +78,8 @@ function TextEffect.typewriter(element: TextLabel | TextButton | TextBox, text: 
 
     local animation = AnimationFactory._create(
         function(dt: number): boolean
+            if not isValidElement(element) then return true end
+
             elapsed = elapsed + dt
             cursorTimer = cursorTimer + dt
 
@@ -84,25 +87,22 @@ function TextEffect.typewriter(element: TextLabel | TextButton | TextBox, text: 
                 cursorTimer = 0
                 showCursor = not showCursor
             end
-
-	        local targetIndex = math.floor(elapsed / speed)
+            
+            local targetIndex = math.floor(elapsed / speed)
             local charAdvanced = targetIndex > charIndex and charIndex < totalChars
             local cursorChanged = showCursor ~= lastCursorState
 
             if charAdvanced then
                 charIndex = math.min(targetIndex, totalChars)
-                -- Update text immediately when a character advances
                 local displayText = string.sub(text, 1, charIndex)
                 if cursor ~= "" and charIndex < totalChars then
                     displayText = displayText .. (showCursor and cursor or "")
                 end
                 textElement.Text = displayText
                 
-                -- Play Typewriter SFX if provided in config
                 local soundSource = config and config.sound
                 if soundSource then
                     local soundToPlay: Instance? = nil
-                    
                     if soundSource:IsA("Folder") then
                          local sounds = soundSource:GetChildren()
                          if #sounds > 0 then
@@ -117,7 +117,6 @@ function TextEffect.typewriter(element: TextLabel | TextButton | TextBox, text: 
                         sfx.Name = "TypewriterSFX"
                         sfx.Parent = game:GetService("SoundService")
                         sfx:Play()
-                        sfx:Play()
                         task.delay(sfx.TimeLength + 1, function()
                             if sfx then sfx:Destroy() end
                         end)
@@ -125,7 +124,6 @@ function TextEffect.typewriter(element: TextLabel | TextButton | TextBox, text: 
                 end
 
             elseif cursorChanged and charIndex < totalChars then
-                -- Only update for cursor blink if still typing
                 local displayText = string.sub(text, 1, charIndex)
                 if cursor ~= "" then
                     displayText = displayText .. (showCursor and cursor or "")
@@ -135,6 +133,7 @@ function TextEffect.typewriter(element: TextLabel | TextButton | TextBox, text: 
             end
 
             if charIndex >= totalChars then
+                -- Persist final text
                 textElement.Text = text
                 return true
             end
@@ -143,21 +142,21 @@ function TextEffect.typewriter(element: TextLabel | TextButton | TextBox, text: 
         onComplete,
         reset,
         "typewriter",
-        textElement
+        element
     )
 
     AnimationFactory._start(animation)
     return AnimationFactory._createController(animation, reset)
 end
 
-function TextEffect.scramble(element: TextLabel | TextButton | TextBox, text: string, config: ScrambleConfig?): EffectController
+function TextEffect.scramble(element: GuiObject, text: string, config: ScrambleConfig?): EffectController
     assertArg(element, "element", "Instance")
     assertArg(text, "text", "string")
 
     if not isTextElement(element) then
         error("Element must be TextLabel, TextButton, or TextBox", 2)
     end
-
+    
     local textElement = element :: TextLabel
     local duration = math.max(config and config.duration or TextDefaults.SCRAMBLE_DURATION, 0.001)
     local chars = config and config.chars or TextDefaults.SCRAMBLE_CHARS
@@ -201,7 +200,7 @@ function TextEffect.scramble(element: TextLabel | TextButton | TextBox, text: st
             textElement.Text = table.concat(charTable)
 
             if progress >= 1 then
-                textElement.Text = text
+                textElement.Text = text -- Ensure final text is correct
                 return true
             end
             return false
@@ -209,34 +208,36 @@ function TextEffect.scramble(element: TextLabel | TextButton | TextBox, text: st
         onComplete,
         reset,
         "scramble",
-        textElement
+        element
     )
 
     AnimationFactory._start(animation)
     return AnimationFactory._createController(animation, reset)
 end
 
-function TextEffect.colorCycle(element: TextLabel | TextButton | TextBox, config: ColorCycleConfig?): EffectController
+function TextEffect.colorCycle(element: GuiObject, config: ColorCycleConfig?): EffectController
     assertArg(element, "element", "Instance")
-
     if not isTextElement(element) then
         error("Element must be TextLabel, TextButton, or TextBox", 2)
     end
+    Transform._saveState(element)
 
     local textElement = element :: TextLabel
     local speed = config and config.speed or 1
     local saturation = config and config.saturation or 1
     local brightness = config and config.brightness or 1
 
-    local originalColor = textElement.TextColor3
     local elapsed = 0
 
     local function reset()
-        textElement.TextColor3 = originalColor
+        if isValidElement(element) then
+            Transform._restoreState(element)
+        end
     end
 
     local animation = AnimationFactory._create(
         function(dt: number): boolean
+            if not isValidElement(textElement) then return true end
             elapsed = elapsed + dt * speed
             textElement.TextColor3 = hsvToColor3(elapsed, saturation, brightness)
             return false
@@ -244,34 +245,37 @@ function TextEffect.colorCycle(element: TextLabel | TextButton | TextBox, config
         nil,
         reset,
         "colorCycle",
-        textElement
+        element
     )
 
     AnimationFactory._start(animation)
     return AnimationFactory._createController(animation, reset)
 end
 
-function TextEffect.colorPulse(element: TextLabel | TextButton | TextBox, config: ColorPulseConfig?): EffectController
+function TextEffect.colorPulse(element: GuiObject, config: ColorPulseConfig?): EffectController
     assertArg(element, "element", "Instance")
 
     if not isTextElement(element) then
         error("Element must be TextLabel, TextButton, or TextBox", 2)
     end
+    Transform._saveState(element)
 
     local textElement = element :: TextLabel
     local fromColor = config and config.fromColor or Color3.new(1, 1, 1)
     local toColor = config and config.toColor or Color3.new(1, 0, 0)
     local speed = config and config.speed or 1
 
-    local originalColor = textElement.TextColor3
     local elapsed = 0
 
     local function reset()
-        textElement.TextColor3 = originalColor
+        if isValidElement(element) then
+            Transform._restoreState(element)
+        end
     end
 
     local animation = AnimationFactory._create(
         function(dt: number): boolean
+            if not isValidElement(textElement) then return true end
             elapsed = elapsed + dt * speed
             local progress = (math.sin(elapsed * math.pi * 2) + 1) / 2
             textElement.TextColor3 = fromColor:Lerp(toColor, progress)
@@ -280,26 +284,28 @@ function TextEffect.colorPulse(element: TextLabel | TextButton | TextBox, config
         nil,
         reset,
         "colorPulse",
-        textElement
+        element
     )
 
     AnimationFactory._start(animation)
     return AnimationFactory._createController(animation, reset)
 end
 
-function TextEffect.glitch(element: TextLabel | TextButton | TextBox, config: GlitchConfig?): EffectController
+function TextEffect.glitch(element: GuiObject, config: GlitchConfig?): EffectController
     assertArg(element, "element", "Instance")
 
     if not isTextElement(element) then
         error("Element must be TextLabel, TextButton, or TextBox", 2)
     end
+    Transform._saveState(element)
 
     local textElement = element :: TextLabel
     local intensity = config and config.intensity or 0.3
     local speed = config and config.speed or 10
 
-    local originalText = textElement.Text
-    local originalColor = textElement.TextColor3
+    local originalText = Transform._getOriginal(element).Text or textElement.Text
+    local originalColor = Transform._getOriginal(element).TextColor3 or textElement.TextColor3
+    
     local random = Random.new()
     local elapsed = 0
     local nextGlitch = 0
@@ -307,12 +313,14 @@ function TextEffect.glitch(element: TextLabel | TextButton | TextBox, config: Gl
     local glitchChars = "!@#$%^&*()_+-=[]{}|;:,.<>?/\\~`"
 
     local function reset()
-        textElement.Text = originalText
-        textElement.TextColor3 = originalColor
+        if isValidElement(element) then
+            Transform._restoreState(element)
+        end
     end
 
     local animation = AnimationFactory._create(
         function(dt: number): boolean
+            if not isValidElement(textElement) then return true end
             elapsed = elapsed + dt
 
             if elapsed >= nextGlitch then
@@ -345,20 +353,20 @@ function TextEffect.glitch(element: TextLabel | TextButton | TextBox, config: Gl
         nil,
         reset,
         "glitch",
-        textElement
+        element
     )
 
     AnimationFactory._start(animation)
     return AnimationFactory._createController(animation, reset)
 end
 
-function TextEffect.fadeColor(element: TextLabel | TextButton | TextBox, toColor: Color3, config: TransitionConfig?): EffectController
+function TextEffect.fadeColor(element: GuiObject, toColor: Color3, config: TransitionConfig?): EffectController
     assertArg(element, "element", "Instance")
 
     if not isTextElement(element) then
         error("Element must be TextLabel, TextButton, or TextBox", 2)
     end
-
+    
     local textElement = element :: TextLabel
     local duration = config and config.duration or 0.3
     local onComplete = config and config.onComplete
@@ -366,8 +374,13 @@ function TextEffect.fadeColor(element: TextLabel | TextButton | TextBox, toColor
     local fromColor = textElement.TextColor3
     local elapsed = 0
 
+    local function reset()
+        textElement.TextColor3 = fromColor
+    end
+
     local animation = AnimationFactory._create(
         function(dt: number): boolean
+            if not isValidElement(textElement) then return true end
             elapsed = elapsed + dt
             local progress = math.clamp(elapsed / duration, 0, 1)
             textElement.TextColor3 = fromColor:Lerp(toColor, progress)
@@ -379,30 +392,31 @@ function TextEffect.fadeColor(element: TextLabel | TextButton | TextBox, toColor
             return false
         end,
         onComplete,
-        nil,
+        reset,
         "fadeColor",
-        textElement
+        element
     )
 
     AnimationFactory._start(animation)
-    return AnimationFactory._createController(animation, nil)
+    return AnimationFactory._createController(animation, reset)
 end
 
-function TextEffect.rollValue(element: TextLabel | TextButton | TextBox, targetValue: number, config: RollValueConfig?): EffectController
+function TextEffect.rollValue(element: GuiObject, targetValue: number, config: RollValueConfig?): EffectController
     assertArg(element, "element", "Instance")
     assertArg(targetValue, "targetValue", "number")
 
     if not isTextElement(element) then
         error("Element must be TextLabel, TextButton, or TextBox", 2)
     end
-
+    
     local textElement = element :: TextLabel
     local duration = math.max(config and config.duration or 0.5, 0.001)
     local easingName = config and config.easing or "OutQuad"
     local customFormat = config and config.format
     local onComplete = config and config.onComplete
 
-    local currentText = textElement.Text:gsub("[^%d%.%-]", "")
+    local text = textElement.Text
+    local currentText = text:gsub("[^%d%.%-]", "")
     local startValue = config and config.startValue or tonumber(currentText) or 0
     local elapsed = 0
 
@@ -441,7 +455,7 @@ function TextEffect.rollValue(element: TextLabel | TextButton | TextBox, targetV
         onComplete,
         reset,
         "rollValue",
-        textElement
+        element
     )
 
     AnimationFactory._start(animation)
