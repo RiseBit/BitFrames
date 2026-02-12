@@ -15,18 +15,7 @@ local Types = require(script.Parent.Types)
     =========  TYPES  =========
 ]]
 type QueuedEffect = { effectFn: () -> Types.EffectController, duration: number }
-
-export type ChainClassImpl = {
-    _instance: GuiObject,
-    _queue: { QueuedEffect },
-    _isPlaying: boolean,
-    _currentController: Types.EffectController?,
-    _delayThread: thread?,
-    _addEffect: (self: ChainClassImpl, effectFn: () -> Types.EffectController, duration: number) -> ChainClassImpl,
-    delay: (self: ChainClassImpl, seconds: number) -> ChainClassImpl,
-    play: (self: ChainClassImpl, onComplete: (() -> ())?) -> Types.EffectController,
-    stop: (self: ChainClassImpl) -> (),
-}
+export type ChainClassImpl = Types.ChainClassImpl
 
 --[[
     =========  CHAIN CLASS  =========
@@ -50,13 +39,13 @@ function ChainClass._addEffect(self: ChainClassImpl, effectFn: () -> Types.Effec
     return self
 end
 
-function ChainClass.delay(self: ChainClassImpl, seconds: number): ChainClassImpl
+function ChainClass:wait(seconds: number): ChainClassImpl
     return self:_addEffect(function()
         return { stop = function() end, pause = function() end, resume = function() end }
     end, seconds)
 end
 
-function ChainClass.play(self: ChainClassImpl, onComplete: (() -> ())?): Types.EffectController
+function ChainClass:play(onComplete: (() -> ())?): Types.EffectController
     local function stopChain()
         self._isPlaying = false
         if self._currentController then
@@ -103,6 +92,9 @@ function ChainClass.play(self: ChainClassImpl, onComplete: (() -> ())?): Types.E
             return
         end
         local effect = queueCopy[currentIndex]
+        if self._currentController then
+            self._currentController.stop()
+        end
         self._currentController = effect.effectFn()
         self._delayThread = task.delay(effect.duration, playNext)
     end
@@ -111,7 +103,7 @@ function ChainClass.play(self: ChainClassImpl, onComplete: (() -> ())?): Types.E
     return controller
 end
 
-function ChainClass.stop(self: ChainClassImpl)
+function ChainClass:stop()
     self._isPlaying = false
     if self._delayThread then
         task.cancel(self._delayThread)

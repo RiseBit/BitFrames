@@ -38,7 +38,6 @@ function AnimationFactory._create(
     local _onInterrupt: (() -> ())? = onInterrupt
     
     local animation = {
-        id = Scheduler._generateId(),
         state = "idle" :: AnimationState,
         animationType = animationType,
         targetObject = targetObject,

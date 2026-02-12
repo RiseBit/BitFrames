@@ -80,7 +80,7 @@ local Loop = {}
 
 function Loop.spin(element: GuiObject, config: LoopConfig?): EffectController
     assertArg(element, "element", "Instance")
-    Transform._prepareAnimation(element)
+    Transform._prepareAnimation(element, false, "spin")
     return createLoopEffect(
         element,
         function(_el) return 0 end,
@@ -92,7 +92,7 @@ end
 
 function Loop.spinReverse(element: GuiObject, config: LoopConfig?): EffectController
     assertArg(element, "element", "Instance")
-    Transform._prepareAnimation(element)
+    Transform._prepareAnimation(element, false, "spinReverse")
     return createLoopEffect(
         element,
         function(_el) return 0 end,
@@ -104,7 +104,7 @@ end
 
 function Loop.float(element: GuiObject, config: LoopConfig?): EffectController
     assertArg(element, "element", "Instance")
-    Transform._prepareAnimation(element)
+    Transform._prepareAnimation(element, false, "float")
     local originalPosition = Transform._getOriginal(element).Position
     return createLoopEffect(
         element,
@@ -121,7 +121,7 @@ end
 
 function Loop.breathe(element: GuiObject, config: LoopConfig?): EffectController
     assertArg(element, "element", "Instance")
-    Transform._prepareAnimation(element, true)
+    Transform._prepareAnimation(element, true, "breathe")
     local uiScale = Transform._getUIScale(element)
     local originalScale = uiScale.Scale
     
@@ -138,7 +138,7 @@ end
 
 function Loop.glow(element: GuiObject, config: LoopConfig?): EffectController
 	assertArg(element, "element", "Instance")
-	Transform._prepareAnimation(element)
+	Transform._prepareAnimation(element, false, "glow")
 	local originals = Transform._getOriginal(element)
 	local props = getTransparencyProps(element, config)
 
@@ -176,7 +176,7 @@ end
 
 function Loop.swing(element: GuiObject, config: LoopConfig?): EffectController
     assertArg(element, "element", "Instance")
-    Transform._prepareAnimation(element)
+    Transform._prepareAnimation(element, false, "swing")
     local originalRotation = Transform._getOriginal(element).Rotation
     
     return createLoopEffect(
@@ -192,7 +192,7 @@ end
 
 function Loop.sway(element: GuiObject, config: LoopConfig?): EffectController
     assertArg(element, "element", "Instance")
-    Transform._prepareAnimation(element)
+    Transform._prepareAnimation(element, false, "sway")
     local originalPosition = Transform._getOriginal(element).Position
     
     return createLoopEffect(
@@ -210,7 +210,7 @@ end
 
 function Loop.rainbowGradient(element: GuiObject, config: LoopConfig?): EffectController
     assertArg(element, "element", "Instance")
-    Transform._prepareAnimation(element)
+    Transform._prepareAnimation(element, false, "rainbowGradient")
     
     local gradient = element:FindFirstChildOfClass("UIGradient")
     local createdGradient = false

@@ -10,6 +10,7 @@
     =========  MODULES  =========
 ]]
 local Check = require(script.Parent.Check)
+local Scheduler = require(script.Parent.Parent.Core.Scheduler)
 
 local assertArg = Check._assertArg
 
@@ -20,12 +21,21 @@ local Transform = {}
 
 local OriginalStates = setmetatable({}, { __mode = "k" })
 
-function Transform._prepareAnimation(element: GuiObject, needsUIScale: boolean?)
+function Transform._prepareAnimation(element: GuiObject, needsUIScale: boolean?, animationType: string?)
     assertArg(element, "element", "Instance")
+    
+    if animationType then
+        Scheduler._stopByElement(element, animationType)
+    end
+    
+    if OriginalStates[element] then
+        Transform._restoreState(element)
+    end
     
     if needsUIScale then
         Transform._removeUIScale(element)
     end
+    
     Transform._clearState(element)
     Transform._saveState(element)
 end

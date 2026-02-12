@@ -48,8 +48,8 @@ local Transition = {}
 function Transition.crossfade(fromElement: GuiObject, toElement: GuiObject, config: TransitionConfig?): EffectController
 	assertArg(fromElement, "fromElement", "Instance")
 	assertArg(toElement, "toElement", "Instance")
-	Transform._prepareAnimation(fromElement)
-	Transform._prepareAnimation(toElement)
+	Transform._prepareAnimation(fromElement, false, "crossfade:from")
+	Transform._prepareAnimation(toElement, false, "crossfade:to")
 
 	local useSpring = config and config.spring
 	local onComplete = config and config.onComplete
@@ -137,8 +137,8 @@ end
 function Transition.slideReplace(fromElement: GuiObject, toElement: GuiObject, direction: SlideDirection?, config: TransitionConfig?): EffectController
     assertArg(fromElement, "fromElement", "Instance")
     assertArg(toElement, "toElement", "Instance")
-    Transform._prepareAnimation(fromElement)
-    Transform._prepareAnimation(toElement)
+    Transform._prepareAnimation(fromElement, false, "slideReplace:from")
+    Transform._prepareAnimation(toElement, false, "slideReplace:to")
 
     local dir = direction or "left"
     if not VALID_DIRECTIONS[dir] then

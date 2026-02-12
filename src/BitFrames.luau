@@ -40,6 +40,9 @@ type EffectController = Types.EffectController
 ]]
 local DURATIONS = { default = 0.3, attention = 0.5, loop = 1 }
 
+--[[
+	Make sure to change this "Two" as you add more Effect
+--]]
 local EFFECT_GROUPS = {
 	{ module = Entrance, effects = {"fadeIn", "fadeInUp", "fadeInDown", "scaleIn", "scaleInBounce", "zoomIn", "dropIn"}, duration = DURATIONS.default },
 	{ module = Exit, effects = {"fadeOut", "fadeOutUp", "fadeOutDown", "scaleOut", "shrinkOut", "zoomOut"}, duration = DURATIONS.default },
@@ -130,9 +133,9 @@ local BitFrames = {
 	UIEvent = UIEvent,
 }
 
-function BitFrames.new(instance: GuiObject)
+function BitFrames.new(instance: GuiObject): Chain.ChainClassImpl
 	Check._assertGuiObject(instance, "instance")
-	return Chain._new(instance) :: any
+	return Chain._new(instance) :: Chain.ChainClassImpl
 end
 
 return BitFrames

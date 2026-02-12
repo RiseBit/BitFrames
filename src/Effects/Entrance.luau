@@ -50,7 +50,7 @@ local Entrance = {}
 
 function Entrance.fadeIn(element: GuiObject, config: EntranceConfig?): EffectController
 	assertArg(element, "element", "Instance")
-	Transform._prepareAnimation(element)
+	Transform._prepareAnimation(element, false, "fadeIn")
 
 	local useSpring = config and config.spring
 	local delay = config and config.delay or 0
@@ -133,7 +133,7 @@ end
 
 function Entrance.fadeInUp(element: GuiObject, config: EntranceConfig?): EffectController
 	assertArg(element, "element", "Instance")
-	Transform._prepareAnimation(element)
+	Transform._prepareAnimation(element, false, "fadeInUp")
 
 	local useSpring = config and config.spring
 	local delay = config and config.delay or 0
@@ -209,7 +209,7 @@ end
 
 function Entrance.fadeInDown(element: GuiObject, config: EntranceConfig?): EffectController
 	assertArg(element, "element", "Instance")
-	Transform._prepareAnimation(element)
+	Transform._prepareAnimation(element, false, "fadeInDown")
 
 	local useSpring = config and config.spring
 	local delay = config and config.delay or 0
@@ -285,7 +285,7 @@ end
 
 function Entrance.scaleIn(element: GuiObject, config: EntranceConfig?): EffectController
 	assertArg(element, "element", "Instance")
-	Transform._prepareAnimation(element, true)
+	Transform._prepareAnimation(element, true, "scaleIn")
 
 	local useSpring = config and config.spring
 	local delay = config and config.delay or 0
@@ -366,7 +366,7 @@ end
 
 function Entrance.scaleInBounce(element: GuiObject, config: EntranceConfig?): EffectController
 	assertArg(element, "element", "Instance")
-	Transform._prepareAnimation(element, true)
+	Transform._prepareAnimation(element, true, "scaleInBounce")
 
 	local useSpring = config and config.spring
 	local delay = config and config.delay or 0
@@ -446,7 +446,7 @@ end
 
 function Entrance.zoomIn(element: GuiObject, config: EntranceConfig?): EffectController
 	assertArg(element, "element", "Instance")
-	Transform._prepareAnimation(element, true)
+	Transform._prepareAnimation(element, true, "zoomIn")
 
 	local useSpring = config and config.spring
 	local delay = config and config.delay or 0
@@ -527,7 +527,7 @@ end
 
 function Entrance.dropIn(element: GuiObject, config: EntranceConfig?): EffectController
 	assertArg(element, "element", "Instance")
-	Transform._prepareAnimation(element)
+	Transform._prepareAnimation(element, false, "dropIn")
 
 	local useSpring = config and config.spring
 	local delay = config and config.delay or 0

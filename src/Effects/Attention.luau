@@ -45,7 +45,8 @@ local function createAttentionEffect(
     config: AttentionConfig?,
     defaultDuration: number?,
     defaultLoops: number?,
-    defaultIntensity: number?
+    defaultIntensity: number?,
+    animationType: string?
 ): EffectController
     local duration = math.max(config and config.duration or defaultDuration or AttentionDefaults.DURATION, 0.001)
     local loops = config and config.loops or defaultLoops or AttentionDefaults.LOOPS
@@ -77,6 +78,7 @@ local function createAttentionEffect(
                 elapsed = elapsed - duration
                 t = elapsed / duration
                 if loops > 0 and currentLoop >= loops then
+                    setProperty(element, original, 0)
                     reset()
                     return true
                 end
@@ -88,7 +90,7 @@ local function createAttentionEffect(
         end,
         onComplete,
         reset,
-        "attention",
+        animationType or "attention",
         element
     )
 
@@ -103,7 +105,7 @@ local Attention = {}
 
 function Attention.pulse(element: GuiObject, config: AttentionConfig?): EffectController
     assertArg(element, "element", "Instance")
-    Transform._prepareAnimation(element, true)
+    Transform._prepareAnimation(element, true, "pulse")
     local uiScale = Transform._getUIScale(element)
     local originalScale = uiScale.Scale 
     
@@ -112,27 +114,27 @@ function Attention.pulse(element: GuiObject, config: AttentionConfig?): EffectCo
         function(_) return originalScale end,
         function(_, orig, delta) uiScale.Scale = orig + delta end,
         function(t, intensity) return intensity * math.sin(t * math.pi * 2) end,
-        config, 0.4, 1, 0.1
+        config, 0.4, 1, 0.1, "pulse"
     )
 end
 
 function Attention.shake(element: GuiObject, config: AttentionConfig?): EffectController
     assertArg(element, "element", "Instance")
-    Transform._prepareAnimation(element)
+    Transform._prepareAnimation(element, false, "shake")
     local originalRotation = Transform._getOriginal(element).Rotation
-    
+
     return createAttentionEffect(
         element,
         function(_) return originalRotation end,
         function(el, orig, delta) el.Rotation = orig + delta end,
         function(_, intensity) return intensity * (math.random() * 2 - 1) end,
-        config, 0.1, 3, 5
+        config, 0.1, 3, 5, "shake"
     )
 end
 
 function Attention.bounce(element: GuiObject, config: AttentionConfig?): EffectController
     assertArg(element, "element", "Instance")
-    Transform._prepareAnimation(element)
+    Transform._prepareAnimation(element, false, "bounce")
     local originalPosition = Transform._getOriginal(element).Position
     
     return createAttentionEffect(
@@ -142,13 +144,13 @@ function Attention.bounce(element: GuiObject, config: AttentionConfig?): EffectC
             el.Position = UDim2.new(orig.X.Scale, orig.X.Offset, orig.Y.Scale, orig.Y.Offset + offsetY)
         end,
         function(t, intensity) return -intensity * math.abs(math.sin(t * math.pi)) end,
-        config, 0.3, 1, 10
+        config, 0.3, 1, 10, "bounce"
     )
 end
 
 function Attention.wiggle(element: GuiObject, config: AttentionConfig?): EffectController
     assertArg(element, "element", "Instance")
-    Transform._prepareAnimation(element)
+    Transform._prepareAnimation(element, false, "wiggle")
     local originalRotation = Transform._getOriginal(element).Rotation
     
     return createAttentionEffect(
@@ -156,13 +158,13 @@ function Attention.wiggle(element: GuiObject, config: AttentionConfig?): EffectC
         function(_) return originalRotation end,
         function(el, orig, delta) el.Rotation = orig + delta end,
         function(t, intensity) return intensity * math.sin(t * math.pi * 4) end,
-        config, 0.15, 2, 10
+        config, 0.15, 2, 10, "wiggle"
     )
 end
 
 function Attention.flash(element: GuiObject, config: AttentionConfig?): EffectController
 	assertArg(element, "element", "Instance")
-	Transform._prepareAnimation(element)
+	Transform._prepareAnimation(element, false, "flash")
 	local originals = Transform._getOriginal(element)
 	local props = getTransparencyProps(element, config)
 
@@ -196,6 +198,9 @@ function Attention.flash(element: GuiObject, config: AttentionConfig?): EffectCo
 				elapsed = elapsed - duration
 				t = elapsed / duration
 				if loops > 0 and currentLoop >= loops then
+					for _, prop in props do
+						(element :: any)[prop] = originals[prop] or 0
+					end
 					reset()
 					return true
 				end
@@ -210,7 +215,7 @@ function Attention.flash(element: GuiObject, config: AttentionConfig?): EffectCo
 		end,
 		onComplete,
 		reset,
-		"attention",
+		"flash",
 		element
 	)
 
@@ -220,7 +225,7 @@ end
 
 function Attention.heartbeat(element: GuiObject, config: AttentionConfig?): EffectController
     assertArg(element, "element", "Instance")
-    Transform._prepareAnimation(element, true)
+    Transform._prepareAnimation(element, true, "heartbeat")
     local uiScale = Transform._getUIScale(element)
     local originalScale = uiScale.Scale
     
@@ -241,13 +246,13 @@ function Attention.heartbeat(element: GuiObject, config: AttentionConfig?): Effe
                 return 0
             end
         end,
-        config, 0.6, 1, 0.15
+        config, 0.6, 1, 0.15, "heartbeat"
     )
 end
 
 function Attention.jello(element: GuiObject, config: AttentionConfig?): EffectController
     assertArg(element, "element", "Instance")
-    Transform._prepareAnimation(element, true)
+    Transform._prepareAnimation(element, true, "jello")
     local uiScale = Transform._getUIScale(element)
     local originalScale = uiScale.Scale
     
@@ -259,7 +264,7 @@ function Attention.jello(element: GuiObject, config: AttentionConfig?): EffectCo
             local decay = math.exp(-t * 4)
             return math.sin(t * math.pi * 6) * decay * intensity
         end,
-        config, 0.5, 1, 0.1
+        config, 0.5, 1, 0.1, "jello"
     )
 end
 

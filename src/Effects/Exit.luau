@@ -50,7 +50,7 @@ local Exit = {}
 
 function Exit.fadeOut(element: GuiObject, config: ExitConfig?): EffectController
 	assertArg(element, "element", "Instance")
-	Transform._prepareAnimation(element)
+	Transform._prepareAnimation(element, false, "fadeOut")
 
 	local useSpring = config and config.spring
 	local delay = config and config.delay or 0
@@ -122,7 +122,7 @@ end
 
 function Exit.fadeOutUp(element: GuiObject, config: ExitConfig?): EffectController
 	assertArg(element, "element", "Instance")
-	Transform._prepareAnimation(element)
+	Transform._prepareAnimation(element, false, "fadeOutUp")
 
 	local useSpring = config and config.spring
 	local delay = config and config.delay or 0
@@ -197,7 +197,7 @@ end
 
 function Exit.fadeOutDown(element: GuiObject, config: ExitConfig?): EffectController
 	assertArg(element, "element", "Instance")
-	Transform._prepareAnimation(element)
+	Transform._prepareAnimation(element, false, "fadeOutDown")
 
 	local useSpring = config and config.spring
 	local delay = config and config.delay or 0
@@ -272,7 +272,7 @@ end
 
 function Exit.scaleOut(element: GuiObject, config: ExitConfig?): EffectController
 	assertArg(element, "element", "Instance")
-	Transform._prepareAnimation(element, true)
+	Transform._prepareAnimation(element, true, "scaleOut")
 
 	local useSpring = config and config.spring
 	local delay = config and config.delay or 0
@@ -356,7 +356,7 @@ end
 
 function Exit.shrinkOut(element: GuiObject, config: ExitConfig?): EffectController
 	assertArg(element, "element", "Instance")
-	Transform._prepareAnimation(element, true)
+	Transform._prepareAnimation(element, true, "shrinkOut")
 
 	local useSpring = config and config.spring
 	local delay = config and config.delay or 0
@@ -440,7 +440,7 @@ end
 
 function Exit.zoomOut(element: GuiObject, config: ExitConfig?): EffectController
 	assertArg(element, "element", "Instance")
-	Transform._prepareAnimation(element, true)
+	Transform._prepareAnimation(element, true, "zoomOut")
 
 	local useSpring = config and config.spring
 	local delay = config and config.delay or 0
